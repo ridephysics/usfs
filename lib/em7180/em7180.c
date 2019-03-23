@@ -32,7 +32,7 @@ int em7180_get_romversion(struct em7180 *dev, uint16_t *pversion) {
     int rc;
     uint8_t version_raw[2];
 
-    rc = em7180_read(dev, EM7180_REG_ROM_VERSION, &version_raw, sizeof(version_raw));
+    rc = em7180_read(dev, EM7180_REG_ROM_VERSION_0, &version_raw, sizeof(version_raw));
     if (rc) return -1;
 
     *pversion = (version_raw[0] & 0xff) << 8 | (version_raw[1] & 0xff);
@@ -44,7 +44,7 @@ int em7180_get_ramversion(struct em7180 *dev, uint16_t *pversion) {
     int rc;
     uint8_t version_raw[2];
 
-    rc = em7180_read(dev, EM7180_REG_RAM_VERSION, &version_raw, sizeof(version_raw));
+    rc = em7180_read(dev, EM7180_REG_RAM_VERSION_0, &version_raw, sizeof(version_raw));
     if (rc) return -1;
 
     *pversion = (version_raw[0] & 0xff) << 8 | (version_raw[1] & 0xff);
