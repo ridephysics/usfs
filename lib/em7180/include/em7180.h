@@ -2,6 +2,7 @@
 #define EM7180_H
 
 #include <crossi2c.h>
+#include <stdbool.h>
 
 struct em7180 {
     struct crossi2c_bus *i2cbus;
@@ -55,6 +56,55 @@ enum {
     EM7180_AS_RESERVED2 = 0x80,
 };
 
+// host control
+enum {
+    EM7180_HOSTCTRL_RUN_ENABLE = 0x1,
+    EM7180_HOSTCTRL_ENABLE_UPLOAD = 0x2,
+};
+
+// enable events
+enum {
+    EM7180_EVENT_CPURESET = 0x1,
+    EM7180_EVENT_ERROR = 0x2,
+    EM7180_EVENT_QUAT_RES = 0x4,
+    EM7180_EVENT_MAG_RES = 0x8,
+    EM7180_EVENT_ACCEL_RES = 0x10,
+    EM7180_EVENT_GYRO_RES = 0x20,
+    EM7180_EVENT_BARO_RES = 0x40,
+    EM7180_EVENT_RESERVED2 = 0x80,
+};
+
+// sensor status
+enum {
+    EM7180_SENSORSTATUS_MAG_NACK = 0x1,
+    EM7180_SENSORSTATUS_ACCEL_NACK = 0x2,
+    EM7180_SENSORSTATUS_GYRO_NACK = 0x4,
+    EM7180_SENSORSTATUS_RESERVED1 = 0x8,
+    EM7180_SENSORSTATUS_MAGID_ERROR = 0x10,
+    EM7180_SENSORSTATUS_ACCELID_ERROR = 0x20,
+    EM7180_SENSORSTATUS_GYROID_ERROR = 0x40,
+    EM7180_SENSORSTATUS_RESERVED2 = 0x80,
+};
+
+// error register
+enum em7180_error {
+    EM7180_ERR_NONE = 0x00,
+    EM7180_ERR_MAG_FAILURE = 0x11,
+    EM7180_ERR_ACC_FAILURE = 0x12,
+    EM7180_ERR_GYRO_FAILURE = 0x14,
+    EM7180_ERR_MAG_INIT_FAILURE = 0x21,
+    EM7180_ERR_ACC_INIT_FAILURE = 0x22,
+    EM7180_ERR_GYRO_INIT_FAILURE = 0x24,
+    EM7180_ERR_MATH = 0x30,
+    EM7180_ERR_INVALID_SAMPLE_RATE = 0x80,
+};
+
+enum em7180_param {
+    EM7180_PARAM_STILLNESS_ENABLED = 0x49,
+    EM7180_PARAM_FS_MAG_ACC = 0x4a,
+    EM7180_PARAM_FS_GYRO = 0x4b,
+};
+
 int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus);
 int em7180_destroy(struct em7180 *dev);
 
@@ -64,15 +114,43 @@ int em7180_get_product_id(struct em7180 *dev, uint8_t *pversion);
 int em7180_get_revision_id(struct em7180 *dev, uint8_t *pversion);
 int em7180_get_feature_flags(struct em7180 *dev, uint8_t *pflags);
 int em7180_get_sentral_status(struct em7180 *dev, uint8_t *pstatus);
+int em7180_get_error_register(struct em7180 *dev, enum em7180_error *perror);
+int em7180_get_event_status(struct em7180 *dev, uint8_t *pstatus);
 
-int em7180_standby_enter(struct em7180 *dev);
-int em7180_standby_exit(struct em7180 *dev);
+int em7180_set_qrate_divisior(struct em7180 *dev, size_t d);
+int em7180_set_mag_rate(struct em7180 *dev, size_t hz);
+int em7180_set_accel_rate(struct em7180 *dev, size_t hz);
+int em7180_set_gyro_rate(struct em7180 *dev, size_t hz);
+int em7180_set_baro_rate(struct em7180 *dev, size_t hz);
+int em7180_set_enabled_events(struct em7180 *dev, uint8_t events);
+
+int em7180_set_standby(struct em7180 *dev, bool enabled);
+int em7180_enter_config_mode(struct em7180 *dev);
+int em7180_enter_run_mode(struct em7180 *dev);
 int em7180_passthrough_enter(struct em7180 *dev);
 int em7180_passthrough_exit(struct em7180 *dev);
+int em7180_init(struct em7180 *dev);
+
+int em7180_param_read(struct em7180 *dev, enum em7180_param param, uint8_t data[4]);
+int em7180_param_write(struct em7180 *dev, enum em7180_param param, uint8_t data[4]);
+int em7180_param_write_u32(struct em7180 *dev, enum em7180_param param, uint32_t v);
+
+int em7180_fs_read(struct em7180 *dev, uint16_t *pmag, uint16_t *pacc, uint16_t *pgyro);
+int em7180_fs_write(struct em7180 *dev, uint16_t mag, uint16_t acc, uint16_t gyro);
+
+int em7180_get_data_accelerometer(struct em7180 *dev, int16_t pacc[3]);
+int em7180_get_data_gyroscope(struct em7180 *dev, int16_t pgyro[3]);
+int em7180_get_data_magnetometer(struct em7180 *dev, int16_t pmag[3]);
+int em7180_get_data_quaternion(struct em7180 *dev, uint32_t pquat[4]);
+int em7180_get_data_barometer(struct em7180 *dev, int16_t *pbaro);
+int em7180_get_data_temperature(struct em7180 *dev, int16_t *ptemp);
 
 void em7180_print_feature_flags(uint8_t flags);
 void em7180_print_sentral_status(uint8_t flags);
 void em7180_print_algorithm_ctrl(uint8_t ctrl);
 void em7180_print_algorithm_status(uint8_t status);
+void em7180_print_event_status(uint8_t status);
+void em7180_print_sensor_status(uint8_t status);
+void em7180_print_error(enum em7180_error error);
 
 #endif /* EM7180_H */
