@@ -22,4 +22,5 @@ target_link_libraries(usfs
 add_subdirectory(lib/crosslog)
 add_subdirectory(lib/crossi2c)
 add_subdirectory(lib/em7180)
+add_subdirectory(lib/m24512)
 add_subdirectory(tools)
