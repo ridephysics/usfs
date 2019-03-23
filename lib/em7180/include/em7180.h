@@ -131,12 +131,12 @@ int em7180_set_baro_rate(struct em7180 *dev, size_t hz);
 int em7180_set_enabled_events(struct em7180 *dev, uint8_t events);
 
 // data
-int em7180_get_data_accelerometer(struct em7180 *dev, int16_t pacc[3]);
-int em7180_get_data_gyroscope(struct em7180 *dev, int16_t pgyro[3]);
-int em7180_get_data_magnetometer(struct em7180 *dev, int16_t pmag[3]);
-int em7180_get_data_quaternion(struct em7180 *dev, uint32_t pquat[4]);
-int em7180_get_data_barometer(struct em7180 *dev, int16_t *pbaro);
-int em7180_get_data_temperature(struct em7180 *dev, int16_t *ptemp);
+int em7180_get_data_accelerometer(struct em7180 *dev, int16_t pacc[3], uint16_t *ptime);
+int em7180_get_data_gyroscope(struct em7180 *dev, int16_t pgyro[3], uint16_t *ptime);
+int em7180_get_data_magnetometer(struct em7180 *dev, int16_t pmag[3], uint16_t *ptime);
+int em7180_get_data_quaternion(struct em7180 *dev, uint32_t pquat[4], uint16_t *ptime);
+int em7180_get_data_barometer(struct em7180 *dev, int16_t *pbaro, uint16_t *ptime);
+int em7180_get_data_temperature(struct em7180 *dev, int16_t *ptemp, uint16_t *ptime);
 
 // debug
 void em7180_print_feature_flags(uint8_t flags);
