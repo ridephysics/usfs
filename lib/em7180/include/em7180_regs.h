@@ -1,7 +1,32 @@
 #ifndef EM7180_REGS_H
 #define EM7180_REGS_H
 
+// upload registers
+#define EM7180_REG_UPLOAD_ADDR 0x95
+#define EM7180_REG_UPLOAD_DATA 0x96
+#define EM7180_REG_CRC_HOST 0x97
+
+// control registers
+#define EM7180_REG_HOST_CTRL 0x34
+#define EM7180_REG_RUN_STATUS 0x92
+#define EM7180_REG_RESET_REQUEST 0x9b
+#define EM7180_REG_ENABLE_EVENTS 0x33
+#define EM7180_REG_EVENT_STATUS 0x35
+#define EM7180_REG_ALGORITHM_CTRL 0x54
+#define EM7180_REG_ALGORITHM_STATUS 0x38
+#define EM7180_REG_PASSTRHOUGH_CTRL 0xa0
+#define EM7180_REG_PASSTHROUGH_STATUS 0x9e
+
+// parameter registers
+
+// result registers
+
+// troubleshooting registers
+#define EM7180_REG_SENSOR_STATUS 0x36
 #define EM7180_REG_SENTRAL_STATUS 0x37
+#define EM7180_REG_ERROR 0x50
+
+// device information registers
 #define EM7180_REG_FEATURE_FLAGS 0x39
 #define EM7180_REG_ROM_VERSION 0x70
 #define EM7180_REG_RAM_VERSION 0x72
