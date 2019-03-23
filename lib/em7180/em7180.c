@@ -91,7 +91,7 @@ void em7180_print_feature_flags(uint8_t flags) {
         CROSSLOGD("\treserved 2");
 }
 
-void em7180_print_sentral_status(uint8_t status){
+void em7180_print_sentral_status(uint8_t status) {
     CROSSLOGD("sentral status:");
 
     if (status & EM7180_SS_EEPROM_DETECTED)
@@ -110,4 +110,46 @@ void em7180_print_sentral_status(uint8_t status){
         CROSSLOGD("\treserved 2")
     if (status & EM7180_SS_RESERVED3)
         CROSSLOGD("\treserved 3");
+}
+
+void em7180_print_algorithm_ctrl(uint8_t ctrl) {
+    CROSSLOGD("algorithm control:");
+
+    if (ctrl & EM7180_AC_STANDBY_ENABLE)
+        CROSSLOGD("\tstandby enable");
+    if (ctrl & EM7180_AC_RAWDATA_ENABLE)
+        CROSSLOGD("\trawdata enable");
+    if (ctrl & EM7180_AC_HPR_OUTPUT)
+        CROSSLOGD("\thpr output");
+    if (ctrl & EM7180_AC_6AXIS_ENABLE)
+        CROSSLOGD("\t6-axis enable");
+    if (ctrl & EM7180_AC_RESERVED1)
+        CROSSLOGD("\treserved 1");
+    if (ctrl & EM7180_AC_ENU_OUTPUT)
+        CROSSLOGD("\tenu output")
+    if (ctrl & EM7180_AC_DIS_GYR_WHEN_STILL)
+        CROSSLOGD("\tdisable gyro when still")
+    if (ctrl & EM7180_AC_PARAM_TRANSFER)
+        CROSSLOGD("\tparam transfer");
+}
+
+void em7180_print_algorithm_status(uint8_t status) {
+    CROSSLOGD("algorithm status:");
+
+    if (status & EM7180_AS_STANDBY)
+        CROSSLOGD("\tstandby");
+    if (status & EM7180_AS_SLOW)
+        CROSSLOGD("\talgorithm slow");
+    if (status & EM7180_AS_STILLNESS)
+        CROSSLOGD("\tstillness");
+    if (status & EM7180_AS_CAL_STABLE)
+        CROSSLOGD("\tcal stable");
+    if (status & EM7180_AS_MAG_TRANSIENT)
+        CROSSLOGD("\tmag transient");
+    if (status & EM7180_AS_UNRELIABLE)
+        CROSSLOGD("\tunreliable sensor data")
+    if (status & EM7180_AS_RESERVED1)
+        CROSSLOGD("\treserved 1")
+    if (status & EM7180_AS_RESERVED2)
+        CROSSLOGD("\treserved 2");
 }
