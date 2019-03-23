@@ -38,7 +38,7 @@ int em7180_init(struct em7180 *dev) {
     uint8_t event_status;
     uint8_t sensor_status;
 
-    rc = em7180_enter_config_mode(dev);
+    rc = em7180_set_run_mode(dev, false);
     if (rc) return rc;
 
     // 41Hz
@@ -70,7 +70,7 @@ int em7180_init(struct em7180 *dev) {
     rc = em7180_set_enabled_events(dev, EM7180_EVENT_CPURESET|EM7180_EVENT_ERROR|EM7180_EVENT_QUAT_RES);
     if (rc) return rc;
 
-    rc = em7180_enter_run_mode(dev);
+    rc = em7180_set_run_mode(dev, true);
     if (rc) return rc;
 
     rc = em7180_fs_read(dev, &fs_mag, &fs_acc, &fs_gyro);

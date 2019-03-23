@@ -154,8 +154,7 @@ int em7180_fs_write(struct em7180 *dev, uint16_t mag, uint16_t acc, uint16_t gyr
 
 // state
 int em7180_set_standby(struct em7180 *dev, bool enabled);
-int em7180_enter_config_mode(struct em7180 *dev);
-int em7180_enter_run_mode(struct em7180 *dev);
+int em7180_set_run_mode(struct em7180 *dev, bool enabled);
 int em7180_passthrough_enter(struct em7180 *dev);
 int em7180_passthrough_exit(struct em7180 *dev);
 

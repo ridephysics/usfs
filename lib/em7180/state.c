@@ -103,22 +103,10 @@ int em7180_passthrough_exit(struct em7180 *dev) {
     return 0;
 }
 
-int em7180_enter_config_mode(struct em7180 *dev) {
+int em7180_set_run_mode(struct em7180 *dev, bool enabled) {
     int rc;
 
-    rc = em7180_write_byte(dev, EM7180_REG_HOST_CTRL, 0x00);
-    if (rc) {
-        CROSSLOGE("can't enter config mode");
-        return -1;
-    }
-
-    return 0;
-}
-
-int em7180_enter_run_mode(struct em7180 *dev) {
-    int rc;
-
-    rc = em7180_write_byte(dev, EM7180_REG_HOST_CTRL, EM7180_HOSTCTRL_RUN_ENABLE);
+    rc = em7180_write_byte(dev, EM7180_REG_HOST_CTRL, enabled ? EM7180_HOSTCTRL_RUN_ENABLE : 0);
     if (rc) {
         CROSSLOGE("can't enter run mode");
         return -1;
