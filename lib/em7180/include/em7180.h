@@ -108,6 +108,7 @@ enum em7180_param {
 // init
 int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus);
 int em7180_destroy(struct em7180 *dev);
+int em7180_reset_request(struct em7180 *dev);
 int em7180_init(struct em7180 *dev);
 
 // info
@@ -119,6 +120,7 @@ int em7180_get_feature_flags(struct em7180 *dev, uint8_t *pflags);
 int em7180_get_sentral_status(struct em7180 *dev, uint8_t *pstatus);
 int em7180_get_error_register(struct em7180 *dev, enum em7180_error *perror);
 int em7180_get_event_status(struct em7180 *dev, uint8_t *pstatus);
+int em7180_get_sensor_status(struct em7180 *dev, uint8_t *pstatus);
 
 // config
 int em7180_set_qrate_divisior(struct em7180 *dev, size_t d);
@@ -153,7 +155,7 @@ int em7180_fs_read(struct em7180 *dev, uint16_t *pmag, uint16_t *pacc, uint16_t 
 int em7180_fs_write(struct em7180 *dev, uint16_t mag, uint16_t acc, uint16_t gyro);
 
 // state
-int em7180_set_standby(struct em7180 *dev, bool enabled);
+int em7180_set_algorithm(struct em7180 *dev, uint8_t v);
 int em7180_set_run_mode(struct em7180 *dev, bool enabled);
 int em7180_passthrough_enter(struct em7180 *dev);
 int em7180_passthrough_exit(struct em7180 *dev);

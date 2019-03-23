@@ -5,16 +5,14 @@
 #define CROSSLOG_TAG "em7180"
 #include <crosslog.h>
 
-int em7180_set_standby(struct em7180 *dev, bool enabled) {
+int em7180_set_algorithm(struct em7180 *dev, uint8_t v) {
     int rc;
 
-    rc = em7180_write_byte(dev, EM7180_REG_ALGORITHM_CTRL, enabled ? EM7180_AC_STANDBY_ENABLE : 0x00);
+    rc = em7180_write_byte(dev, EM7180_REG_ALGORITHM_CTRL, v);
     if (rc) {
-        CROSSLOGE("can't set standby mode");
+        CROSSLOGE("can't set algorithm control");
         return -1;
     }
-
-    usleep(5000);
 
     return 0;
 }
@@ -23,11 +21,8 @@ int em7180_passthrough_enter(struct em7180 *dev) {
     int rc;
     uint8_t ptstatus;
 
-    rc = em7180_set_standby(dev, true);
-    if (rc) {
-        CROSSLOGE("can't enter standby mode");
-        return -1;
-    }
+    rc = em7180_set_algorithm(dev, EM7180_AC_STANDBY_ENABLE);
+    if (rc) return -1;
 
     rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
     if (rc) {
@@ -94,11 +89,8 @@ int em7180_passthrough_exit(struct em7180 *dev) {
         }
     } while (ptstatus & 0x01);
 
-    rc = em7180_set_standby(dev, false);
-    if (rc) {
-        CROSSLOGE("can't exit standby mode");
-        return -1;
-    }
+    rc = em7180_set_algorithm(dev, 0x00);
+    if (rc) return -1;
 
     return 0;
 }

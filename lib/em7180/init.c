@@ -8,10 +8,48 @@
 
 #define EM7180_ADDRESS 0x28
 
+static int read_hwinfo(struct em7180 *dev) {
+    int rc;
+    uint16_t romversion;
+    uint16_t ramversion;
+    uint8_t productid;
+    uint8_t revid;
+    uint8_t flags;
+
+    rc = em7180_get_romversion(dev, &romversion);
+    if (rc) return -1;
+
+    rc = em7180_get_ramversion(dev, &ramversion);
+    if (rc) return -1;
+
+    rc = em7180_get_product_id(dev, &productid);
+    if (rc) return -1;
+
+    rc = em7180_get_revision_id(dev, &revid);
+    if (rc) return -1;
+
+    CROSSLOGD("romversion: %04x ramversion: %04x productid: %02x revid: %02x",
+        romversion, ramversion, productid, revid);
+
+    rc = em7180_get_feature_flags(dev, &flags);
+    if (rc) return -1;
+    em7180_print_feature_flags(flags);
+
+    return 0;
+}
+
 int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus) {
+    int rc;
+
     memset(dev, 0, sizeof(*dev));
 
     dev->i2cbus = i2cbus;
+
+    rc = read_hwinfo(dev);
+    if (rc) {
+        CROSSLOGE("can't read hwinfo");
+        return -1;
+    }
 
     return 0;
 }
@@ -29,15 +67,44 @@ int em7180_write_byte(struct em7180 *dev, uint8_t reg, uint8_t value) {
     return crossi2c_write_byte(dev->i2cbus, EM7180_ADDRESS, reg, value);
 }
 
+int em7180_reset_request(struct em7180 *dev) {
+    int rc;
+
+    rc = em7180_write_byte(dev, EM7180_REG_RESET_REQUEST, 0x01);
+    if (rc) {
+        CROSSLOGE("can't request reset");
+        return -1;
+    }
+
+    return 0;
+}
+
 int em7180_init(struct em7180 *dev) {
     int rc;
     uint16_t fs_mag;
     uint16_t fs_acc;
     uint16_t fs_gyro;
-    uint8_t alg_status;
-    uint8_t event_status;
+    uint8_t sentral_status;
     uint8_t sensor_status;
 
+    rc = em7180_reset_request(dev);
+    if (rc) return rc;
+
+    rc = em7180_set_run_mode(dev, false);
+    if (rc) return rc;
+
+    rc = em7180_get_sentral_status(dev, &sentral_status);
+    if (rc) return rc;
+    em7180_print_sentral_status(sentral_status);
+
+    if (sentral_status & EM7180_SS_EEPROM_CRC_ERR) {
+        CROSSLOGE("EEPROM CONFIG ERROR");
+        return -1;
+    }
+
+    // force initialization
+    rc = em7180_set_run_mode(dev, true);
+    if (rc) return rc;
     rc = em7180_set_run_mode(dev, false);
     if (rc) return rc;
 
@@ -64,7 +131,7 @@ int em7180_init(struct em7180 *dev) {
     rc = em7180_set_baro_rate(dev, 50);
     if (rc) return rc;
 
-    rc = em7180_set_standby(dev, false);
+    rc = em7180_set_algorithm(dev, 0x00);
     if (rc) return rc;
 
     rc = em7180_set_enabled_events(dev, EM7180_EVENT_CPURESET|EM7180_EVENT_ERROR|EM7180_EVENT_QUAT_RES);
@@ -87,22 +154,8 @@ int em7180_init(struct em7180 *dev) {
     if (rc) return rc;
     CROSSLOGI("Full Scale Range: mag=%u acc=%u gyro=%u", fs_mag, fs_acc, fs_gyro);
 
-    rc = em7180_read(dev, EM7180_REG_ALGORITHM_STATUS, &alg_status, 1);
-    if (rc) {
-        CROSSLOGE("can't read alg status");
-        return -1;
-    }
-    em7180_print_algorithm_status(alg_status);
-
-    rc = em7180_get_event_status(dev, &event_status);
+    rc = em7180_get_sensor_status(dev, &sensor_status);
     if (rc) return rc;
-    em7180_print_event_status(event_status);
-
-    rc = em7180_read(dev, EM7180_REG_SENSOR_STATUS, &sensor_status, 1);
-    if (rc) {
-        CROSSLOGE("can't read sensor status");
-        return -1;
-    }
     em7180_print_sensor_status(sensor_status);
 
     return 0;

@@ -15,11 +15,8 @@ int em7180_param_read(struct em7180 *dev, enum em7180_param param, uint8_t data[
         return -1;
     }
 
-    rc = em7180_write_byte(dev, EM7180_REG_ALGORITHM_CTRL, EM7180_AC_PARAM_TRANSFER);
-    if (rc) {
-        CROSSLOGE("can't start param transfer");
-        return -1;
-    }
+    rc = em7180_set_algorithm(dev, EM7180_AC_PARAM_TRANSFER);
+    if (rc) return -1;
 
     do {
         rc = em7180_read(dev, EM7180_REG_PARAM_ACK, &ack, 1);
@@ -34,6 +31,15 @@ int em7180_param_read(struct em7180 *dev, enum em7180_param param, uint8_t data[
         CROSSLOGE("can't read param data");
         return -1;
     }
+
+    rc = em7180_write_byte(dev, EM7180_REG_PARAM_REQUEST, 0x00);
+    if (rc) {
+        CROSSLOGE("can't reset param request");
+        return -1;
+    }
+
+    rc = em7180_set_algorithm(dev, EM7180_AC_PARAM_TRANSFER);
+    if (rc) return -1;
 
     return 0;
 }
@@ -58,11 +64,8 @@ int em7180_param_write(struct em7180 *dev, enum em7180_param param, uint8_t data
         return -1;
     }
 
-    rc = em7180_write_byte(dev, EM7180_REG_ALGORITHM_CTRL, EM7180_AC_PARAM_TRANSFER);
-    if (rc) {
-        CROSSLOGE("can't start param transfer");
-        return -1;
-    }
+    rc = em7180_set_algorithm(dev, EM7180_AC_PARAM_TRANSFER);
+    if (rc) return -1;
 
     do {
         rc = em7180_read(dev, EM7180_REG_PARAM_ACK, &ack, 1);
@@ -78,11 +81,8 @@ int em7180_param_write(struct em7180 *dev, enum em7180_param param, uint8_t data
         return -1;
     }
 
-    rc = em7180_write_byte(dev, EM7180_REG_ALGORITHM_CTRL, 0x00);
-    if (rc) {
-        CROSSLOGE("can't reset param request");
-        return -1;
-    }
+    rc = em7180_set_algorithm(dev, 0x00);
+    if (rc) return -1;
 
     return 0;
 }
