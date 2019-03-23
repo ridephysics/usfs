@@ -7,74 +7,20 @@
 
 #define EM7180_ADDRESS 0x28
 
-int em7180_open(struct em7180 *dev) {
-    int rc;
-
-    dev->nopen++;
-
-    if (dev->nopen > 1)
-        return 0;
-
-    CROSSLOGD("open");
-
-    rc = crossi2c_open(dev->i2cbus, dev->i2cdev, EM7180_ADDRESS, 100);
-    if (rc) {
-        CROSSLOGE("can't open em7180 dev");
-        return -1;
-    }
-
-    return 0;
-}
-
-int em7180_close(struct em7180 *dev) {
-    int rc;
-
-    if (dev->nopen == 0) {
-        CROSSLOGE("em7180 is already closed");
-        return -1;
-    }
-
-    dev->nopen--;
-    if (dev->nopen > 0)
-        return 0;
-
-    CROSSLOGD("close");
-
-    rc = crossi2c_close(dev->i2cdev);
-    if (rc) {
-        CROSSLOGE("can't close em7180 dev");
-        return -1;
-    }
-
-    return 0;
-}
-
 static int em7180_read(struct em7180 *dev, uint8_t reg, void *buf, size_t len) {
-    if (dev->nopen <= 0) {
-        CROSSLOGE("em7180 was never opened");
-        return -1;
-    }
-
-    return crossi2c_read(dev->i2cdev, reg, buf, len);
+    return crossi2c_write_read(dev->i2cbus, EM7180_ADDRESS, &reg, 1, buf, len);
 }
 
 #if 0
-static int em7180_write(struct em7180 *dev, const void *buf, size_t len) {
-    if (dev->nopen <= 0) {
-        CROSSLOGE("em7180 was never opened");
-        return -1;
-    }
-
-    return crossi2c_write(dev->i2cdev, buf, len);
+static int em7180_write_byte(struct em7180 *dev, uint8_t reg, uint8_t value) {
+    return crossi2c_write_byte(dev->i2cbus, EM7180_ADDRESS, reg, value);
 }
 #endif
 
-int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus, struct crossi2c_dev *i2cdev_mem) {
+int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus) {
     memset(dev, 0, sizeof(*dev));
 
     dev->i2cbus = i2cbus;
-    dev->i2cdev = i2cdev_mem;
-    dev->nopen = 0;
 
     return 0;
 }

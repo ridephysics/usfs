@@ -5,7 +5,6 @@
 #include <crosslog.h>
 
 static struct crossi2c_bus i2cbus;
-static struct crossi2c_dev i2cdev_em7180;
 static struct em7180 em7180;
 
 int main(void) {
@@ -19,38 +18,36 @@ int main(void) {
     uint8_t status = 0;
     size_t count;
 
-    rc = crossi2c_linux_create(&i2cbus, "/dev/i2c-9", 0);
+    rc = crossi2c_linux_create(&i2cbus, "/dev/i2c-9", 100);
     if (rc) return -1;
 
-    rc = em7180_create(&em7180, &i2cbus, &i2cdev_em7180);
+    rc = em7180_create(&em7180, &i2cbus);
     if (rc) goto out_i2sbus_destroy;
 
-    rc = em7180_open(&em7180);
-    if (rc) goto out_em7180_close;
 
     rc = em7180_get_romversion(&em7180, &romversion);
-    if (rc) goto out_em7180_close;
+    if (rc) goto out_em7180_destroy;
 
     rc = em7180_get_ramversion(&em7180, &ramversion);
-    if (rc) goto out_em7180_close;
+    if (rc) goto out_em7180_destroy;
 
     rc = em7180_get_product_id(&em7180, &productid);
-    if (rc) goto out_em7180_close;
+    if (rc) goto out_em7180_destroy;
 
     rc = em7180_get_revision_id(&em7180, &revid);
-    if (rc) goto out_em7180_close;
+    if (rc) goto out_em7180_destroy;
 
     CROSSLOGI("romversion: %04x ramversion: %04x productid: %02x revid: %02x",
         romversion, ramversion, productid, revid);
 
     rc = em7180_get_feature_flags(&em7180, &flags);
-    if (rc) goto out_em7180_close;
+    if (rc) goto out_em7180_destroy;
 
     em7180_print_feature_flags(flags);
 
     for (count = 0; !status && count < 10; count++) {
         rc = em7180_get_sentral_status(&em7180, &status);
-        if (rc) goto out_em7180_close;
+        if (rc) goto out_em7180_destroy;
 
         em7180_print_sentral_status(status);
     }
@@ -60,12 +57,8 @@ int main(void) {
 
     ret = 0;
 
-out_em7180_close:
-    rc = em7180_close(&em7180);
-    if (rc) {
-        CROSSLOGW("can't close em7180 dev");
-    }
 
+out_em7180_destroy:
     rc = em7180_destroy(&em7180);
     if (rc) {
         CROSSLOGW("can't destroy em7180 dev");

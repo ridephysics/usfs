@@ -5,9 +5,6 @@
 
 struct em7180 {
     struct crossi2c_bus *i2cbus;
-    struct crossi2c_dev *i2cdev;
-
-    int nopen;
 };
 
 enum {
@@ -33,11 +30,9 @@ enum {
 };
 
 
-int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus, struct crossi2c_dev *i2cdev_mem);
-int em7180_destroy(struct em7180 *dev);
 
-int em7180_open(struct em7180 *dev);
-int em7180_close(struct em7180 *dev);
+int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus);
+int em7180_destroy(struct em7180 *dev);
 
 int em7180_get_romversion(struct em7180 *dev, uint16_t *pversion);
 int em7180_get_ramversion(struct em7180 *dev, uint16_t *pversion);
