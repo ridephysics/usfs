@@ -65,6 +65,11 @@ int em7180_get_revision_id(struct em7180 *dev, uint8_t *pversion);
 int em7180_get_feature_flags(struct em7180 *dev, uint8_t *pflags);
 int em7180_get_sentral_status(struct em7180 *dev, uint8_t *pstatus);
 
+int em7180_standby_enter(struct em7180 *dev);
+int em7180_standby_exit(struct em7180 *dev);
+int em7180_passthrough_enter(struct em7180 *dev);
+int em7180_passthrough_exit(struct em7180 *dev);
+
 void em7180_print_feature_flags(uint8_t flags);
 void em7180_print_sentral_status(uint8_t flags);
 void em7180_print_algorithm_ctrl(uint8_t ctrl);

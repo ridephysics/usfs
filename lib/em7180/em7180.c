@@ -11,11 +11,9 @@ static int em7180_read(struct em7180 *dev, uint8_t reg, void *buf, size_t len) {
     return crossi2c_write_read(dev->i2cbus, EM7180_ADDRESS, &reg, 1, buf, len);
 }
 
-#if 0
 static int em7180_write_byte(struct em7180 *dev, uint8_t reg, uint8_t value) {
     return crossi2c_write_byte(dev->i2cbus, EM7180_ADDRESS, reg, value);
 }
-#endif
 
 int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus) {
     memset(dev, 0, sizeof(*dev));
@@ -68,6 +66,167 @@ int em7180_get_feature_flags(struct em7180 *dev, uint8_t *pflags) {
 
 int em7180_get_sentral_status(struct em7180 *dev, uint8_t *pstatus) {
     return em7180_read(dev, EM7180_REG_SENTRAL_STATUS, pstatus, sizeof(*pstatus));
+}
+
+int em7180_standby_enter(struct em7180 *dev) {
+    int rc;
+    uint8_t algstatus;
+
+    rc = em7180_read(dev, EM7180_REG_ALGORITHM_STATUS, &algstatus, 1);
+    if (rc) {
+        CROSSLOGE("can't read alg status");
+        return -1;
+    }
+
+    if (algstatus & EM7180_AS_STANDBY) {
+        CROSSLOGD("we're in standby mode already");
+        return 0;
+    }
+
+    CROSSLOGD("enter standby mode");
+
+    rc = em7180_write_byte(dev, EM7180_REG_ALGORITHM_CTRL, EM7180_AC_STANDBY_ENABLE);
+    if (rc) {
+        CROSSLOGE("can't put device into standby mode");
+        return -1;
+    }
+
+    // XXX: for some reason the standby status never changes
+#if 0
+    do {
+        usleep(5000);
+
+        rc = em7180_read(dev, EM7180_REG_ALGORITHM_STATUS, &algstatus, 1);
+        if (rc) {
+            CROSSLOGE("can't read alg status");
+            return -1;
+        }
+    } while (!(algstatus & EM7180_AS_STANDBY));
+#else
+    usleep(5000);
+#endif
+
+    return 0;
+}
+
+int em7180_standby_exit(struct em7180 *dev) {
+    int rc;
+    uint8_t algstatus;
+
+    rc = em7180_read(dev, EM7180_REG_ALGORITHM_STATUS, &algstatus, 1);
+    if (rc) {
+        CROSSLOGE("can't read alg status");
+        return -1;
+    }
+
+    if (!(algstatus & EM7180_AS_STANDBY)) {
+        CROSSLOGD("we're not in standby mode");
+        return 0;
+    }
+
+    CROSSLOGD("exit standby mode");
+
+    rc = em7180_write_byte(dev, EM7180_REG_ALGORITHM_CTRL, 0x00);
+    if (rc) {
+        CROSSLOGE("can't put device out of standby mode");
+        return -1;
+    }
+
+    do {
+        usleep(5000);
+
+        rc = em7180_read(dev, EM7180_REG_ALGORITHM_STATUS, &algstatus, 1);
+        if (rc) {
+            CROSSLOGE("can't read alg status");
+            return -1;
+        }
+    } while (algstatus & EM7180_AS_STANDBY);
+
+    return 0;
+}
+
+int em7180_passthrough_enter(struct em7180 *dev) {
+    int rc;
+    uint8_t ptstatus;
+
+    rc = em7180_standby_enter(dev);
+    if (rc) {
+        CROSSLOGE("can't enter standby mode");
+        return -1;
+    }
+
+    rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
+    if (rc) {
+        CROSSLOGE("can't read pt status");
+        return -1;
+    }
+
+    if (ptstatus & 0x01) {
+        CROSSLOGD("we're in passthrough mode already");
+        return 0;
+    }
+
+    CROSSLOGD("enter passthrough mode");
+
+    rc = em7180_write_byte(dev, EM7180_REG_PASSTRHOUGH_CTRL, 0x01);
+    if (rc) {
+        CROSSLOGE("can't put device into passthrough mode");
+        return -1;
+    }
+
+    do {
+        usleep(5000);
+
+        rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
+        if (rc) {
+            CROSSLOGE("can't read passthrough status");
+            return -1;
+        }
+    } while (!(ptstatus & 0x01));
+
+    return 0;
+}
+
+int em7180_passthrough_exit(struct em7180 *dev) {
+    int rc;
+    uint8_t ptstatus;
+
+    rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
+    if (rc) {
+        CROSSLOGE("can't read pt status");
+        return -1;
+    }
+
+    if (!(ptstatus & 0x01)) {
+        CROSSLOGD("we're in passthrough mode already");
+        return 0;
+    }
+
+    CROSSLOGD("exit passthrough mode");
+
+    rc = em7180_write_byte(dev, EM7180_REG_PASSTRHOUGH_CTRL, 0x00);
+    if (rc) {
+        CROSSLOGE("can't put device out of passthrough mode");
+        return -1;
+    }
+
+    do {
+        usleep(5000);
+
+        rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
+        if (rc) {
+            CROSSLOGE("can't read passthrough status");
+            return -1;
+        }
+    } while (ptstatus & 0x01);
+
+    rc = em7180_standby_exit(dev);
+    if (rc) {
+        CROSSLOGE("can't exit standby mode");
+        return -1;
+    }
+
+    return 0;
 }
 
 void em7180_print_feature_flags(uint8_t flags) {
