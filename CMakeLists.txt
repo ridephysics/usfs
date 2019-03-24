@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(usfs)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(BUILD_SHARED_LIBS ON)
+
 add_compile_options(
     -Wall
     -Wextra
