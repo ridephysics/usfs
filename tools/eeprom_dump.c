@@ -6,6 +6,11 @@
 #define CROSSLOG_TAG "eeprom_dump"
 #include <crosslog.h>
 
+#define EEPROM_SZ 65536
+#define CHUNK_SZ 128
+static uint8_t eepromdata[CHUNK_SZ];
+_Static_assert((EEPROM_SZ % CHUNK_SZ) == 0, "EEPROM_SZ needs to be a multiple of CHUNK_SZ");
+
 static struct crossi2c_bus i2cbus;
 static struct em7180 em7180;
 static struct m24512 m24512;
@@ -14,7 +19,6 @@ int main(int argc, char **argv) {
     int rc;
     int ret = -1;
     int fd;
-    uint8_t eepromdata[128];
     ssize_t nbytes;
 
     if (argc != 3) {
@@ -52,15 +56,15 @@ int main(int argc, char **argv) {
         goto out_leave_passthrough;
     }
 
-    for (size_t i = 0; i < 512; i++) {
-        rc = m24512_read(&m24512, i * 128, eepromdata, sizeof(eepromdata));
+    for (size_t i = 0; i < 65536; i += CHUNK_SZ) {
+        rc = m24512_read(&m24512, i, eepromdata, CHUNK_SZ);
         if (rc) {
-            CROSSLOGE("can't read from 0x%04zx", i * 128);
+            CROSSLOGE("can't read from 0x%04zx", i);
             goto out_leave_passthrough;
         }
 
-        nbytes = write(fd, eepromdata, sizeof(eepromdata));
-        if (nbytes != sizeof(eepromdata)) {
+        nbytes = write(fd, eepromdata, CHUNK_SZ);
+        if (nbytes != CHUNK_SZ) {
             CROSSLOG_ERRNO("write");
             goto out_leave_passthrough;
         }
