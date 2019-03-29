@@ -1,7 +1,7 @@
 #ifndef CROSSI2C_H
 #define CROSSI2C_H
 
-#include <sys/types.h>
+#include <stddef.h>
 #include <stdint.h>
 
 struct crossi2c_bus;
