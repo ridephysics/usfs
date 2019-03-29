@@ -38,6 +38,35 @@ static int read_hwinfo(struct em7180 *dev) {
     return 0;
 }
 
+static int read_actual_rates(struct em7180 *dev) {
+    int rc;
+    uint8_t actual_mag;
+    uint8_t actual_accel;
+    uint8_t actual_gyro;
+    uint8_t actual_baro;
+    uint8_t actual_temp;
+
+    rc = em7180_get_actual_rate_mag(dev, &actual_mag);
+    if (rc) return -1;
+
+    rc = em7180_get_actual_rate_accel(dev, &actual_accel);
+    if (rc) return -1;
+
+    rc = em7180_get_actual_rate_gyro(dev, &actual_gyro);
+    if (rc) return -1;
+
+    rc = em7180_get_actual_rate_baro(dev, &actual_baro);
+    if (rc) return -1;
+
+    rc = em7180_get_actual_rate_temp(dev, &actual_temp);
+    if (rc) return -1;
+
+    CROSSLOGD("actual-rates: mag=%u accel=%u gyro=%u baro=%u temp=%u",
+        actual_mag, actual_accel, actual_gyro, actual_baro, actual_temp);
+
+    return 0;
+}
+
 int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus) {
     int rc;
 
@@ -157,6 +186,9 @@ int em7180_init(struct em7180 *dev) {
     rc = em7180_get_sensor_status(dev, &sensor_status);
     if (rc) return rc;
     em7180_print_sensor_status(sensor_status);
+
+    rc = read_actual_rates(dev);
+    if (rc) return rc;
 
     return 0;
 }
