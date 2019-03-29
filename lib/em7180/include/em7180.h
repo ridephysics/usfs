@@ -121,6 +121,11 @@ int em7180_get_sentral_status(struct em7180 *dev, uint8_t *pstatus);
 int em7180_get_error_register(struct em7180 *dev, enum em7180_error *perror);
 int em7180_get_event_status(struct em7180 *dev, uint8_t *pstatus);
 int em7180_get_sensor_status(struct em7180 *dev, uint8_t *pstatus);
+int em7180_get_actual_rate_mag(struct em7180 *dev, uint8_t *prate);
+int em7180_get_actual_rate_accel(struct em7180 *dev, uint8_t *prate);
+int em7180_get_actual_rate_gyro(struct em7180 *dev, uint8_t *prate);
+int em7180_get_actual_rate_baro(struct em7180 *dev, uint8_t *prate);
+int em7180_get_actual_rate_temp(struct em7180 *dev, uint8_t *prate);
 
 // config
 int em7180_set_qrate_divisior(struct em7180 *dev, size_t d);
