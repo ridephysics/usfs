@@ -171,7 +171,7 @@ int em7180_init(struct em7180 *dev) {
 
     rc = em7180_fs_read(dev, &fs_mag, &fs_acc, &fs_gyro);
     if (rc) return rc;
-    CROSSLOGI("Full Scale Range: mag=%u acc=%u gyro=%u", fs_mag, fs_acc, fs_gyro);
+    CROSSLOGD("Full Scale Range: mag=%u acc=%u gyro=%u", fs_mag, fs_acc, fs_gyro);
 
     rc = em7180_param_write_u32(dev, EM7180_PARAM_STILLNESS_ENABLED, 0);
     if (rc) return rc;
@@ -181,7 +181,7 @@ int em7180_init(struct em7180 *dev) {
 
     rc = em7180_fs_read(dev, &fs_mag, &fs_acc, &fs_gyro);
     if (rc) return rc;
-    CROSSLOGI("Full Scale Range: mag=%u acc=%u gyro=%u", fs_mag, fs_acc, fs_gyro);
+    CROSSLOGD("Full Scale Range: mag=%u acc=%u gyro=%u", fs_mag, fs_acc, fs_gyro);
 
     rc = em7180_get_sensor_status(dev, &sensor_status);
     if (rc) return rc;
