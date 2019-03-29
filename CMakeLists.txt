@@ -9,6 +9,7 @@ add_compile_options(
     -Wextra
     -Wshadow
     -Wstrict-prototypes
+    -Wmissing-prototypes
     -Werror
 )
 
