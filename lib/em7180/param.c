@@ -38,7 +38,7 @@ int em7180_param_read(struct em7180 *dev, enum em7180_param param, uint8_t data[
         return -1;
     }
 
-    rc = em7180_set_algorithm(dev, EM7180_AC_PARAM_TRANSFER);
+    rc = em7180_set_algorithm(dev, 0x00);
     if (rc) return -1;
 
     return 0;
