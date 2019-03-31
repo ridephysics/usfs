@@ -134,6 +134,8 @@ int em7180_set_accel_rate(struct em7180 *dev, size_t hz);
 int em7180_set_gyro_rate(struct em7180 *dev, size_t hz);
 int em7180_set_baro_rate(struct em7180 *dev, size_t hz);
 int em7180_set_enabled_events(struct em7180 *dev, uint8_t events);
+int em7180_set_calibration_accel(struct em7180 *dev, int16_t min[3], int16_t max[3]);
+int em7180_reset_calibration_accel(struct em7180 *dev);
 
 // data
 int em7180_get_data_accelerometer(struct em7180 *dev, int16_t pacc[3], uint16_t *ptime);
