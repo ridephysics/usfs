@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    rc = crossi2c_linux_create(&i2cbus, argv[1], 100);
+    rc = crossi2c_linux_create(&i2cbus, argv[1]);
     if (rc) {
         CROSSLOGE("can't create i2cbus");
         return -1;

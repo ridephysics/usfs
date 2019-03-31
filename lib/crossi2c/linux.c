@@ -13,12 +13,8 @@
 #define CROSSLOG_TAG "crossi2c"
 #include <crosslog.h>
 
-int crossi2c_linux_create(struct crossi2c_bus *bus, const char *path, size_t maxtranssz) {
+int crossi2c_linux_create(struct crossi2c_bus *bus, const char *path) {
     int fd;
-
-    if (maxtranssz == 0) {
-        maxtranssz = 64;
-    }
 
     memset(bus, 0, sizeof(*bus));
 
@@ -29,7 +25,6 @@ int crossi2c_linux_create(struct crossi2c_bus *bus, const char *path, size_t max
     }
 
     bus->fd = fd;
-    bus->maxtranssz = maxtranssz;
 
     return 0;
 }

@@ -18,7 +18,7 @@ int main(void) {
     uint8_t status = 0;
     size_t count;
 
-    rc = crossi2c_linux_create(&i2cbus, "/dev/i2c-9", 100);
+    rc = crossi2c_linux_create(&i2cbus, "/dev/i2c-9");
     if (rc) return -1;
 
     rc = em7180_create(&em7180, &i2cbus);
