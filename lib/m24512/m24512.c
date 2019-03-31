@@ -25,8 +25,9 @@ int m24512_destroy(struct m24512 *dev) {
     return 0;
 }
 
-int m24512_read(struct m24512 *dev, uint16_t addr, void *data, size_t len) {
+int m24512_read(struct m24512 *dev, uint16_t addr, void *_data, size_t len) {
     int rc;
+    uint8_t *data = _data;
     uint8_t addrbuf[2];
 
     while (len) {
