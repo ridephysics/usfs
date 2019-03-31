@@ -44,7 +44,7 @@ int em7180_passthrough_enter(struct em7180 *dev) {
     }
 
     do {
-        usleep(5000);
+        em7180_usleep(5000);
 
         rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
         if (rc) {
@@ -80,7 +80,7 @@ int em7180_passthrough_exit(struct em7180 *dev) {
     }
 
     do {
-        usleep(5000);
+        em7180_usleep(5000);
 
         rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
         if (rc) {
