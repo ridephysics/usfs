@@ -5,7 +5,17 @@
 #define CROSSLOG_TAG "default"
 #endif
 
-#ifdef __unix__
+#if defined(__ZEPHYR__)
+    #include <misc/printk.h>
+
+    #define CROSSLOG_INTERNAL(prefix, fmt, ...) \
+        printk(prefix " " CROSSLOG_TAG ": " fmt "\n", ##__VA_ARGS__)
+
+    #define CROSSLOGD(fmt, ...) CROSSLOG_INTERNAL("D", fmt, ##__VA_ARGS__)
+    #define CROSSLOGI(fmt, ...) CROSSLOG_INTERNAL("I", fmt, ##__VA_ARGS__)
+    #define CROSSLOGW(fmt, ...) CROSSLOG_INTERNAL("W", fmt, ##__VA_ARGS__)
+    #define CROSSLOGE(fmt, ...) CROSSLOG_INTERNAL("E", fmt, ##__VA_ARGS__)
+#elif defined(__unix__)
     #include <stdio.h>
     #include <unistd.h>
     #include <string.h>
