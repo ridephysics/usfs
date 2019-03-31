@@ -24,10 +24,10 @@
             CROSSLOG_COLOR(color), ##__VA_ARGS__, CROSSLOG_COLOR(RESET) \
         )
 
-    #define CROSSLOGD(fmt, ...) CROSSLOG_INTERNAL("D", BLUE, fmt, ##__VA_ARGS__);
-    #define CROSSLOGI(fmt, ...) CROSSLOG_INTERNAL("I", GREEN, fmt, ##__VA_ARGS__);
-    #define CROSSLOGW(fmt, ...) CROSSLOG_INTERNAL("W", ORANGE, fmt, ##__VA_ARGS__);
-    #define CROSSLOGE(fmt, ...) CROSSLOG_INTERNAL("E", RED, fmt, ##__VA_ARGS__);
+    #define CROSSLOGD(fmt, ...) CROSSLOG_INTERNAL("D", BLUE, fmt, ##__VA_ARGS__)
+    #define CROSSLOGI(fmt, ...) CROSSLOG_INTERNAL("I", GREEN, fmt, ##__VA_ARGS__)
+    #define CROSSLOGW(fmt, ...) CROSSLOG_INTERNAL("W", ORANGE, fmt, ##__VA_ARGS__)
+    #define CROSSLOGE(fmt, ...) CROSSLOG_INTERNAL("E", RED, fmt, ##__VA_ARGS__)
 
     #define CROSSLOG_ERRNO(fmt, ...) CROSSLOGE(fmt ": %s(%d)", ##__VA_ARGS__, strerror(errno), errno)
 #else
