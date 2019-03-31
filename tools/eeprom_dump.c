@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 
     rc = em7180_passthrough_enter(&em7180);
     if (rc) {
-        CROSSLOGE("can't enter passthrough mode")
+        CROSSLOGE("can't enter passthrough mode");
         goto out_m24512_destroy;
     }
 
