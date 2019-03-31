@@ -3,6 +3,8 @@
 
 #include <crossi2c.h>
 
+#define M24512_PAGESZ 128
+
 struct m24512 {
     struct crossi2c_bus *i2cbus;
 };
