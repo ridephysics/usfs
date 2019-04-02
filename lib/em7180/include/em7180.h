@@ -3,6 +3,7 @@
 
 #include <crossi2c.h>
 #include <stdbool.h>
+#include <em7180_regs.h>
 
 struct em7180 {
     struct crossi2c_bus *i2cbus;
@@ -105,6 +106,13 @@ enum em7180_param {
     EM7180_PARAM_FS_GYRO = 0x4b,
 };
 
+#define EM7180_RAWDATA_OFF_Q EM7180_REG_QX_0
+#define EM7180_RAWDATA_OFF_M EM7180_REG_MX_0
+#define EM7180_RAWDATA_OFF_A EM7180_REG_AX_0
+#define EM7180_RAWDATA_OFF_G EM7180_REG_GX_0
+#define EM7180_RAWDATA_OFF_B EM7180_REG_BD_0
+#define EM7180_RAWDATA_OFF_T EM7180_REG_TD_0
+
 // init
 int em7180_create(struct em7180 *dev, struct crossi2c_bus *i2cbus);
 int em7180_destroy(struct em7180 *dev);
@@ -118,7 +126,7 @@ int em7180_get_product_id(struct em7180 *dev, uint8_t *pversion);
 int em7180_get_revision_id(struct em7180 *dev, uint8_t *pversion);
 int em7180_get_feature_flags(struct em7180 *dev, uint8_t *pflags);
 int em7180_get_sentral_status(struct em7180 *dev, uint8_t *pstatus);
-int em7180_get_error_register(struct em7180 *dev, enum em7180_error *perror);
+int em7180_get_error_register(struct em7180 *dev, uint8_t *perror);
 int em7180_get_event_status(struct em7180 *dev, uint8_t *pstatus);
 int em7180_get_sensor_status(struct em7180 *dev, uint8_t *pstatus);
 int em7180_get_actual_rate_mag(struct em7180 *dev, uint8_t *prate);
@@ -138,12 +146,20 @@ int em7180_set_calibration_accel(struct em7180 *dev, int16_t min[3], int16_t max
 int em7180_reset_calibration_accel(struct em7180 *dev);
 
 // data
-int em7180_get_data_accelerometer(struct em7180 *dev, int16_t pacc[3], uint16_t *ptime);
-int em7180_get_data_gyroscope(struct em7180 *dev, int16_t pgyro[3], uint16_t *ptime);
-int em7180_get_data_magnetometer(struct em7180 *dev, int16_t pmag[3], uint16_t *ptime);
-int em7180_get_data_quaternion(struct em7180 *dev, uint32_t pquat[4], uint16_t *ptime);
-int em7180_get_data_barometer(struct em7180 *dev, int16_t *pbaro, uint16_t *ptime);
-int em7180_get_data_temperature(struct em7180 *dev, int16_t *ptemp, uint16_t *ptime);
+void em7180_parse_data_quaternion(uint8_t quat_raw[18], uint32_t quat[4], uint16_t *ptime);
+void em7180_parse_data_magnetometer(uint8_t mag_raw[8], int16_t mag[3], uint16_t *ptime);
+void em7180_parse_data_accelerometer(uint8_t acc_raw[8], int16_t acc[3], uint16_t *ptime);
+void em7180_parse_data_gyroscope(uint8_t gyro_raw[8], int16_t gyro[3], uint16_t *ptime);
+void em7180_parse_data_barometer(uint8_t baro_raw[4], int16_t *baro, uint16_t *ptime);
+void em7180_parse_data_temperature(uint8_t temp_raw[4], int16_t *temp, uint16_t *ptime);
+
+int em7180_get_data_accelerometer(struct em7180 *dev, int16_t acc[3], uint16_t *ptime);
+int em7180_get_data_gyroscope(struct em7180 *dev, int16_t gyro[3], uint16_t *ptime);
+int em7180_get_data_magnetometer(struct em7180 *dev, int16_t mag[3], uint16_t *ptime);
+int em7180_get_data_quaternion(struct em7180 *dev, uint32_t quat[4], uint16_t *ptime);
+int em7180_get_data_barometer(struct em7180 *dev, int16_t *baro, uint16_t *ptime);
+int em7180_get_data_temperature(struct em7180 *dev, int16_t *temp, uint16_t *ptime);
+int em7180_get_data_all_raw(struct em7180 *dev, uint8_t raw[50]);
 
 // debug
 void em7180_print_feature_flags(uint8_t flags);
