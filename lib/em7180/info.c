@@ -83,17 +83,14 @@ int em7180_get_sentral_status(struct em7180 *dev, uint8_t *pstatus) {
     return 0;
 }
 
-int em7180_get_error_register(struct em7180 *dev, enum em7180_error *perror) {
+int em7180_get_error_register(struct em7180 *dev, uint8_t *perror) {
     int rc;
-    uint8_t error;
 
-    rc = em7180_read(dev, EM7180_REG_ERROR, &error, 1);
+    rc = em7180_read(dev, EM7180_REG_ERROR, perror, 1);
     if (rc) {
         CROSSLOGE("can't read error register");
         return -1;
     }
-
-    *perror = error;
 
     return 0;
 }
