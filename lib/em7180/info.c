@@ -119,6 +119,18 @@ int em7180_get_sensor_status(struct em7180 *dev, uint8_t *pstatus) {
     return 0;
 }
 
+int em7180_get_algorithm_status(struct em7180 *dev, uint8_t *pstatus) {
+    int rc;
+
+    rc = em7180_read(dev, EM7180_REG_ALGORITHM_STATUS, pstatus, 1);
+    if (rc) {
+        CROSSLOGE("can't read algorithm status");
+        return -1;
+    }
+
+    return 0;
+}
+
 int em7180_get_actual_rate_mag(struct em7180 *dev, uint8_t *prate) {
     int rc;
 
