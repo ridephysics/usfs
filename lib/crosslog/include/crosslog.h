@@ -15,6 +15,15 @@
     #define CROSSLOGI(fmt, ...) CROSSLOG_INTERNAL("I", fmt, ##__VA_ARGS__)
     #define CROSSLOGW(fmt, ...) CROSSLOG_INTERNAL("W", fmt, ##__VA_ARGS__)
     #define CROSSLOGE(fmt, ...) CROSSLOG_INTERNAL("E", fmt, ##__VA_ARGS__)
+
+#elif defined(ESP_PLATFORM)
+    #include <esp_log.h>
+
+    #define CROSSLOGD(fmt, ...) ESP_LOGD(CROSSLOG_TAG, fmt, ##__VA_ARGS__)
+    #define CROSSLOGI(fmt, ...) ESP_LOGI(CROSSLOG_TAG, fmt, ##__VA_ARGS__)
+    #define CROSSLOGW(fmt, ...) ESP_LOGW(CROSSLOG_TAG, fmt, ##__VA_ARGS__)
+    #define CROSSLOGE(fmt, ...) ESP_LOGE(CROSSLOG_TAG, fmt, ##__VA_ARGS__)
+
 #elif defined(__unix__)
     #include <stdio.h>
     #include <unistd.h>
