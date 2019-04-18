@@ -7,6 +7,9 @@
 #elif defined(__unix__)
     #include <unistd.h>
     #define em7180_usleep(x) usleep((x))
+#elif defined(ESP_PLATFORM)
+    #include <esp32/rom/ets_sys.h>
+    #define em7180_usleep(x) ets_delay_us((x))
 #else
     #error "unsupported platform"
 #endif
