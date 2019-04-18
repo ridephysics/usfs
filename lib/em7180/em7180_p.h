@@ -7,6 +7,8 @@
 #elif defined(__unix__)
     #include <unistd.h>
     #define em7180_usleep(x) usleep((x))
+#else
+    #error "unsupported platform"
 #endif
 
 int em7180_read(struct em7180 *dev, uint8_t reg, void *buf, size_t len);
