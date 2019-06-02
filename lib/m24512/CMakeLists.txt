@@ -20,6 +20,17 @@ target_include_directories(m24512 PUBLIC
 zephyr_library_link_libraries(
     ${M24512_LIBS_COMMON}
 )
+elseif(COMMAND idf_component_register)
+set(COMPONENT_SRCS
+    ${M24512_SRCS_COMMON}
+)
+set(COMPONENT_ADD_INCLUDEDIRS
+    ${M24512_INCS_COMMON}
+)
+set(COMPONENT_PRIV_REQUIRES
+    ${M24512_LIBS_COMMON}
+)
+register_component()
 else()
 cmake_minimum_required(VERSION 2.8)
 project(m24512)

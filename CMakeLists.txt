@@ -21,6 +21,17 @@ target_include_directories(usfs PUBLIC
 zephyr_library_link_libraries(
     ${USFS_LIBS_COMMON}
 )
+elseif(COMMAND idf_component_register)
+set(COMPONENT_SRCS
+    ${USFS_SRCS_COMMON}
+)
+set(COMPONENT_ADD_INCLUDEDIRS
+    ${USFS_LIBS_COMMON}
+)
+set(COMPONENT_PRIV_REQUIRES
+    ${USFS_LIBS_COMMON}
+)
+register_component()
 else()
 cmake_minimum_required(VERSION 2.8)
 project(usfs)
@@ -50,5 +61,7 @@ target_link_libraries(usfs
 add_subdirectory(tools)
 endif()
 
+if(NOT COMMAND idf_component_register)
 add_subdirectory(lib/em7180)
 add_subdirectory(lib/m24512)
+endif()

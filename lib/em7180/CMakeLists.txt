@@ -26,6 +26,17 @@ target_include_directories(em7180 PUBLIC
 zephyr_library_link_libraries(
     ${EM7180_LIBS_COMMON}
 )
+elseif(COMMAND idf_component_register)
+set(COMPONENT_SRCS
+    ${EM7180_SRCS_COMMON}
+)
+set(COMPONENT_ADD_INCLUDEDIRS
+    ${EM7180_INCS_COMMON}
+)
+set(COMPONENT_PRIV_REQUIRES
+    ${EM7180_LIBS_COMMON}
+)
+register_component()
 else()
 cmake_minimum_required(VERSION 2.8)
 project(em7180)
