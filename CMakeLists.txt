@@ -6,6 +6,8 @@ set(USFS_INCS_COMMON
 )
 set(USFS_LIBS_COMMON
     crossi2c
+    em7180
+    m24512
 )
 
 if(PROJECT_USE_ZEPHYR)
