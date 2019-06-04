@@ -58,6 +58,9 @@ target_link_libraries(usfs
     ${USFS_LIBS_COMMON}
 )
 
+add_subdirectory(${COMPONENTS_DIR}/crosslog crosslog)
+add_subdirectory(${COMPONENTS_DIR}/crossi2c crossi2c)
+
 add_subdirectory(tools)
 endif()
 
