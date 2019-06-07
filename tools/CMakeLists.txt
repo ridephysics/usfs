@@ -20,3 +20,11 @@ target_link_libraries(eeprom_dump
     em7180
     m24512
 )
+
+add_executable(rawdata_decoder
+    rawdata_decoder.c
+)
+target_link_libraries(rawdata_decoder
+    crosslog
+    em7180
+)
