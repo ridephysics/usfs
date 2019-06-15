@@ -518,12 +518,6 @@ const struct test_s _test = {
     .max_g          = 0.95f,
     .max_accel_var  = 0.14f
 };
-
-static struct gyro_state_s st = {
-    .reg = &_reg,
-    .hw = &_hw,
-    .test = &_test
-};
 #elif defined MPU6500
 const struct gyro_reg_s _reg = {
     .who_am_i       = 0x75,
@@ -600,13 +594,13 @@ const struct test_s _test = {
     .max_g_offset   = .5f,   //500 mg for Accel Criteria C
     .sample_wait_ms = 10    //10ms sample time wait
 };
+#endif
 
 static struct gyro_state_s st = {
     .reg = &_reg,
     .hw = &_hw,
     .test = &_test
 };
-#endif
 
 #define MAX_PACKET_LENGTH (12)
 #ifdef MPU6500
