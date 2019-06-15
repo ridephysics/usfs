@@ -436,8 +436,11 @@ int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e ma
 {
     unsigned char data[6];
 
+    memset(st, 0, sizeof(*st));
+
     st->mputype = mputype;
     st->magtype = magtype;
+    st->mag_bypass = 0;
     st->i2cbus = i2cbus;
 
     if (mputype == MPU_TYPE_MPU6050) {
