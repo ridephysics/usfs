@@ -23,9 +23,10 @@
 #include <string.h>
 #include <math.h>
 #include "inv_mpu.h"
-
-#include <crosslog.h>
 #include <usfs.h>
+
+#define CROSSLOG_TAG "eMPL"
+#include <crosslog.h>
 
 static inline int i2c_write(struct mpu_state_s *st, uint8_t addr, uint8_t reg, size_t len, const void *buf) {
     return crossi2c_burst_write(st->i2cbus, addr, reg, buf, len);
