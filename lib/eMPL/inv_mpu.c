@@ -268,8 +268,6 @@ int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e ma
     if (i2c_write(st, st->hw->addr, st->reg->pwr_mgmt_1, 1, data))
         return -1;
 
-   st->chip_cfg.accel_half = 0;
-
     if (mputype == MPU_TYPE_MPU6500) {
         /* MPU6500 shares 4kB of memory between the DMP and the FIFO. Since the
          * first 3kB are needed by the DMP, we'll use the last 1kB for the FIFO.
@@ -588,8 +586,6 @@ int mpu_get_accel_fsr(struct mpu_state_s *st, uint8_t *fsr)
     default:
         return -1;
     }
-    if (st->chip_cfg.accel_half)
-        fsr[0] <<= 1;
     return 0;
 }
 
@@ -817,8 +813,6 @@ int mpu_get_accel_sens(struct mpu_state_s *st, uint16_t *sens)
     default:
         return -1;
     }
-    if (st->chip_cfg.accel_half)
-        sens[0] >>= 1;
     return 0;
 }
 

@@ -157,11 +157,6 @@ struct mpu_chip_cfg_s {
     uint8_t int_enable;
     /* 1 if devices on auxiliary I2C bus appear on the primary. */
     uint8_t bypass_mode;
-    /* 1 if half-sensitivity.
-     * NOTE: This doesn't belong here, but everything else in hw_s is const,
-     * and this allows us to save some precious RAM.
-     */
-    uint8_t accel_half;
     /* 1 if device in low-power accel-only mode. */
     uint8_t lp_accel_mode;
     /* 1 if interrupts are only triggered on motion events. */
