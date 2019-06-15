@@ -692,10 +692,9 @@ int mpu_read_reg(unsigned char reg, unsigned char *data)
  *  Clock source: Gyro PLL\n
  *  FIFO: Disabled.\n
  *  Data ready interrupt: Disabled, active low, unlatched.
- *  @param[in]  int_param   Platform-specific parameters to interrupt API.
  *  @return     0 if successful.
  */
-int mpu_init(struct int_param_s *int_param)
+int mpu_init(void)
 {
     unsigned char data[6];
 
@@ -754,9 +753,6 @@ int mpu_init(struct int_param_s *int_param)
         return -1;
     if (mpu_configure_fifo(0))
         return -1;
-
-    if (int_param)
-        reg_int_cb(int_param);
 
 #ifdef AK89xx_SECONDARY
     setup_compass();
