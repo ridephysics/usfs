@@ -1966,10 +1966,10 @@ static int accel_self_test(long *bias_regular, long *bias_st)
         st_shift_cust = labs(bias_regular[jj] - bias_st[jj]) / 65536.f;
         if (st_shift[jj]) {
             st_shift_var = st_shift_cust / st_shift[jj] - 1.f;
-            if (fabs(st_shift_var) > test.max_accel_var)
+            if (fabs(st_shift_var) > st.test->max_accel_var)
                 result |= 1 << jj;
-        } else if ((st_shift_cust < test.min_g) ||
-            (st_shift_cust > test.max_g))
+        } else if ((st_shift_cust < st.test->min_g) ||
+            (st_shift_cust > st.test->max_g))
             result |= 1 << jj;
     }
 
@@ -2013,14 +2013,14 @@ static int gyro_self_test(long *bias_regular, long *bias_st)
     for (jj = 0; jj < 3; jj++) {
         st_shift_cust = labs(bias_regular[jj] - bias_st[jj]) / 65536.f;
         if (tmp[jj]) {
-            st_shift = 3275.f / test.gyro_sens;
+            st_shift = 3275.f / st.test->gyro_sens;
             while (--tmp[jj])
                 st_shift *= 1.046f;
             st_shift_var = st_shift_cust / st_shift - 1.f;
-            if (fabs(st_shift_var) > test.max_gyro_var)
+            if (fabs(st_shift_var) > st.test->max_gyro_var)
                 result |= 1 << jj;
-        } else if ((st_shift_cust < test.min_dps) ||
-            (st_shift_cust > test.max_dps))
+        } else if ((st_shift_cust < st.test->min_dps) ||
+            (st_shift_cust > st.test->max_dps))
             result |= 1 << jj;
     }
 
@@ -2153,7 +2153,7 @@ static int get_st_biases(long *gyro, long *accel, unsigned char hw_test)
     if (hw_test)
         data[0] = st.test->reg_accel_fsr | 0xE0;
     else
-        data[0] = test.reg_accel_fsr;
+        data[0] = st.test->reg_accel_fsr;
     if (i2c_write(st.hw->addr, st.reg->accel_cfg, 1, data))
         return -1;
     if (hw_test)
@@ -2167,7 +2167,7 @@ static int get_st_biases(long *gyro, long *accel, unsigned char hw_test)
     data[0] = INV_XYZ_GYRO | INV_XYZ_ACCEL;
     if (i2c_write(st.hw->addr, st.reg->fifo_en, 1, data))
         return -1;
-    delay_ms(test.wait_ms);
+    delay_ms(st.test->wait_ms);
     data[0] = 0;
     if (i2c_write(st.hw->addr, st.reg->fifo_en, 1, data))
         return -1;
@@ -2198,28 +2198,28 @@ static int get_st_biases(long *gyro, long *accel, unsigned char hw_test)
         gyro[2] += (long)gyro_cur[2];
     }
 #ifdef EMPL_NO_64BIT
-    gyro[0] = (long)(((float)gyro[0]*65536.f) / test.gyro_sens / packet_count);
-    gyro[1] = (long)(((float)gyro[1]*65536.f) / test.gyro_sens / packet_count);
-    gyro[2] = (long)(((float)gyro[2]*65536.f) / test.gyro_sens / packet_count);
+    gyro[0] = (long)(((float)gyro[0]*65536.f) / st.test->gyro_sens / packet_count);
+    gyro[1] = (long)(((float)gyro[1]*65536.f) / st.test->gyro_sens / packet_count);
+    gyro[2] = (long)(((float)gyro[2]*65536.f) / st.test->gyro_sens / packet_count);
     if (has_accel) {
-        accel[0] = (long)(((float)accel[0]*65536.f) / test.accel_sens /
+        accel[0] = (long)(((float)accel[0]*65536.f) / st.test->accel_sens /
             packet_count);
-        accel[1] = (long)(((float)accel[1]*65536.f) / test.accel_sens /
+        accel[1] = (long)(((float)accel[1]*65536.f) / st.test->accel_sens /
             packet_count);
-        accel[2] = (long)(((float)accel[2]*65536.f) / test.accel_sens /
+        accel[2] = (long)(((float)accel[2]*65536.f) / st.test->accel_sens /
             packet_count);
         /* Don't remove gravity! */
         accel[2] -= 65536L;
     }
 #else
-    gyro[0] = (long)(((long long)gyro[0]<<16) / test.gyro_sens / packet_count);
-    gyro[1] = (long)(((long long)gyro[1]<<16) / test.gyro_sens / packet_count);
-    gyro[2] = (long)(((long long)gyro[2]<<16) / test.gyro_sens / packet_count);
-    accel[0] = (long)(((long long)accel[0]<<16) / test.accel_sens /
+    gyro[0] = (long)(((long long)gyro[0]<<16) / st.test->gyro_sens / packet_count);
+    gyro[1] = (long)(((long long)gyro[1]<<16) / st.test->gyro_sens / packet_count);
+    gyro[2] = (long)(((long long)gyro[2]<<16) / st.test->gyro_sens / packet_count);
+    accel[0] = (long)(((long long)accel[0]<<16) / st.test->accel_sens /
         packet_count);
-    accel[1] = (long)(((long long)accel[1]<<16) / test.accel_sens /
+    accel[1] = (long)(((long long)accel[1]<<16) / st.test->accel_sens /
         packet_count);
-    accel[2] = (long)(((long long)accel[2]<<16) / test.accel_sens /
+    accel[2] = (long)(((long long)accel[2]<<16) / st.test->accel_sens /
         packet_count);
     /* Don't remove gravity! */
     if (accel[2] > 0L)
@@ -2285,7 +2285,7 @@ static int accel_6500_self_test(long *bias_regular, long *bias_st, int debug)
 		if (regs[i] != 0) {
 			ct_shift_prod[i] = mpu_6500_st_tb[regs[i] - 1];
 			ct_shift_prod[i] *= 65536.f;
-			ct_shift_prod[i] /= test.accel_sens;
+			ct_shift_prod[i] /= st.test->accel_sens;
 		}
 		else {
 			ct_shift_prod[i] = 0;
@@ -2308,9 +2308,9 @@ static int accel_6500_self_test(long *bias_regular, long *bias_st, int debug)
 
 			if(debug)
 				log_i("ratio=%7.4f, threshold=%7.4f\r\n", st_shift_ratio[i]/1.f,
-							test.max_accel_var/1.f);
+							st.test->max_accel_var/1.f);
 
-			if (fabs(st_shift_ratio[i]) > test.max_accel_var) {
+			if (fabs(st_shift_ratio[i]) > st.test->max_accel_var) {
 				if(debug)
 					log_i("ACCEL Fail Axis = %d\n", i);
 				result |= 1 << i;	//Error condition
@@ -2319,8 +2319,8 @@ static int accel_6500_self_test(long *bias_regular, long *bias_st, int debug)
 	}
 	else {
 		/* Self Test Pass/Fail Criteria B */
-		accel_st_al_min = test.min_g * 65536.f;
-		accel_st_al_max = test.max_g * 65536.f;
+		accel_st_al_min = st.test->min_g * 65536.f;
+		accel_st_al_max = st.test->max_g * 65536.f;
 
 		if(debug) {
 			log_i("ACCEL:CRITERIA B\r\n");
@@ -2343,7 +2343,7 @@ static int accel_6500_self_test(long *bias_regular, long *bias_st, int debug)
 
 	if(result == 0) {
 	/* Self Test Pass/Fail Criteria C */
-		accel_offset_max = test.max_g_offset * 65536.f;
+		accel_offset_max = st.test->max_g_offset * 65536.f;
 		if(debug)
 			log_i("Accel:CRITERIA C: bias less than %7.4f\n", accel_offset_max/1.f);
 		for (i = 0; i < 3; i++) {
@@ -2378,7 +2378,7 @@ static int gyro_6500_self_test(long *bias_regular, long *bias_st, int debug)
 		if (regs[i] != 0) {
 			ct_shift_prod[i] = mpu_6500_st_tb[regs[i] - 1];
 			ct_shift_prod[i] *= 65536.f;
-			ct_shift_prod[i] /= test.gyro_sens;
+			ct_shift_prod[i] /= st.test->gyro_sens;
 		}
 		else {
 			ct_shift_prod[i] = 0;
@@ -2404,9 +2404,9 @@ static int gyro_6500_self_test(long *bias_regular, long *bias_st, int debug)
 
 			if(debug)
 				log_i("ratio=%7.4f, threshold=%7.4f\r\n", st_shift_ratio[i]/1.f,
-							test.max_gyro_var/1.f);
+							st.test->max_gyro_var/1.f);
 
-			if (fabs(st_shift_ratio[i]) < test.max_gyro_var) {
+			if (fabs(st_shift_ratio[i]) < st.test->max_gyro_var) {
 				if(debug)
 					log_i("Gyro Fail Axis = %d\n", i);
 				result |= 1 << i;	//Error condition
@@ -2415,7 +2415,7 @@ static int gyro_6500_self_test(long *bias_regular, long *bias_st, int debug)
 	}
 	else {
 		/* Self Test Pass/Fail Criteria B */
-		gyro_st_al_max = test.max_dps * 65536.f;
+		gyro_st_al_max = st.test->max_dps * 65536.f;
 
 		if(debug) {
 			log_i("GYRO:CRITERIA B\r\n");
@@ -2437,7 +2437,7 @@ static int gyro_6500_self_test(long *bias_regular, long *bias_st, int debug)
 
 	if(result == 0) {
 	/* Self Test Pass/Fail Criteria C */
-		gyro_offset_max = test.min_dps * 65536.f;
+		gyro_offset_max = st.test->min_dps * 65536.f;
 		if(debug)
 			log_i("Gyro:CRITERIA C: bias less than %7.4f\n", gyro_offset_max/1.f);
 		for (i = 0; i < 3; i++) {
@@ -2494,11 +2494,11 @@ static int get_st_6500_biases(long *gyro, long *accel, unsigned char hw_test, in
     if (hw_test)
         data[0] = st.test->reg_accel_fsr | 0xE0;
     else
-        data[0] = test.reg_accel_fsr;
+        data[0] = st.test->reg_accel_fsr;
     if (i2c_write(st.hw->addr, st.reg->accel_cfg, 1, data))
         return -1;
 
-    delay_ms(test.wait_ms);  //wait 200ms for sensors to stabilize
+    delay_ms(st.test->wait_ms);  //wait 200ms for sensors to stabilize
 
     /* Enable FIFO */
     data[0] = BIT_FIFO_EN;
@@ -2516,14 +2516,14 @@ static int get_st_6500_biases(long *gyro, long *accel, unsigned char hw_test, in
     	log_i("Starting Bias Loop Reads\n");
 
     //start reading samples
-    while (s < test.packet_thresh) {
-    	delay_ms(test.sample_wait_ms); //wait 10ms to fill FIFO
+    while (s < st.test->packet_thresh) {
+    	delay_ms(st.test->sample_wait_ms); //wait 10ms to fill FIFO
 		if (i2c_read(st.hw->addr, st.reg->fifo_count_h, 2, data))
 			return -1;
 		fifo_count = (data[0] << 8) | data[1];
 		packet_count = fifo_count / MAX_PACKET_LENGTH;
-		if ((test.packet_thresh - s) < packet_count)
-		            packet_count = test.packet_thresh - s;
+		if ((st.test->packet_thresh - s) < packet_count)
+		            packet_count = st.test->packet_thresh - s;
 		read_size = packet_count * MAX_PACKET_LENGTH;
 
 		//burst read from FIFO
@@ -2557,12 +2557,12 @@ static int get_st_6500_biases(long *gyro, long *accel, unsigned char hw_test, in
     if (i2c_write(st.hw->addr, st.reg->fifo_en, 1, data))
         return -1;
 
-    gyro[0] = (long)(((long long)gyro[0]<<16) / test.gyro_sens / s);
-    gyro[1] = (long)(((long long)gyro[1]<<16) / test.gyro_sens / s);
-    gyro[2] = (long)(((long long)gyro[2]<<16) / test.gyro_sens / s);
-    accel[0] = (long)(((long long)accel[0]<<16) / test.accel_sens / s);
-    accel[1] = (long)(((long long)accel[1]<<16) / test.accel_sens / s);
-    accel[2] = (long)(((long long)accel[2]<<16) / test.accel_sens / s);
+    gyro[0] = (long)(((long long)gyro[0]<<16) / st.test->gyro_sens / s);
+    gyro[1] = (long)(((long long)gyro[1]<<16) / st.test->gyro_sens / s);
+    gyro[2] = (long)(((long long)gyro[2]<<16) / st.test->gyro_sens / s);
+    accel[0] = (long)(((long long)accel[0]<<16) / st.test->accel_sens / s);
+    accel[1] = (long)(((long long)accel[1]<<16) / st.test->accel_sens / s);
+    accel[2] = (long)(((long long)accel[2]<<16) / st.test->accel_sens / s);
     /* remove gravity from bias calculation */
     if (accel[2] > 0L)
         accel[2] -= 65536L;
