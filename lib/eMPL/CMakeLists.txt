@@ -1,5 +1,11 @@
 set(EMPL_SRCS_COMMON
+    bias.c
+    compass.c
+    dmp.c
+    fifo.c
+    interrupt.c
     inv_mpu.c
+    selftest.c
 )
 set(EMPL_INCS_COMMON
     include
