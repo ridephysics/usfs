@@ -290,8 +290,7 @@ int mpu_load_firmware(struct mpu_state_s *st, unsigned short length, const unsig
 
 int mpu_reg_dump(struct mpu_state_s *st);
 int mpu_read_reg(struct mpu_state_s *st, unsigned char reg, unsigned char *data);
-int mpu_run_self_test(struct mpu_state_s *st, long *gyro, long *accel);
-int mpu_run_6500_self_test(struct mpu_state_s *st, long *gyro, long *accel, unsigned char debug);
+int mpu_run_self_test(struct mpu_state_s *st, long *gyro, long *accel, int debug);
 int mpu_register_tap_cb(struct mpu_state_s *st, void (*func)(unsigned char, unsigned char));
 
 #endif  /* #ifndef _INV_MPU_H_ */
