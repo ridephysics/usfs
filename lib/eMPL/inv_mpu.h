@@ -21,6 +21,8 @@
 #ifndef _INV_MPU_H_
 #define _INV_MPU_H_
 
+#include <crossi2c.h>
+
 #define INV_X_GYRO      (0x40)
 #define INV_Y_GYRO      (0x20)
 #define INV_Z_GYRO      (0x10)
@@ -208,6 +210,8 @@ struct mpu_test_s {
 
 /* Gyro driver state variables. */
 struct mpu_state_s {
+    struct crossi2c_bus *i2cbus;
+
     enum mpu_type_e mputype;
     enum mag_type_e magtype;
     int mag_bypass;
@@ -219,7 +223,7 @@ struct mpu_state_s {
 };
 
 /* Set up APIs */
-int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e magtype);
+int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e magtype, struct crossi2c_bus *i2cbus);
 int mpu_set_bypass(struct mpu_state_s *st, unsigned char bypass_on);
 
 /* Configuration APIs */
