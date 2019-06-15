@@ -43,8 +43,19 @@
 #define MPU_INT_STATUS_DMP_4            (0x1000)
 #define MPU_INT_STATUS_DMP_5            (0x2000)
 
+enum mpu_type_e {
+    MPU_TYPE_MPU6050,
+    MPU_TYPE_MPU6500,
+};
+
+enum mag_type_e {
+    MAG_TYPE_NONE,
+    MAG_TYPE_AK8975,
+    MAG_TYPE_AK8963,
+};
+
 /* Set up APIs */
-int mpu_init(void);
+int mpu_init(enum mpu_type_e mputype, enum mag_type_e magtype);
 int mpu_init_slave(void);
 int mpu_set_bypass(unsigned char bypass_on);
 

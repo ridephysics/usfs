@@ -9,9 +9,6 @@ set(EMPL_LIBS_COMMON
     crossi2c
     m
 )
-set(EMPL_FLAGS_COMMON
-    -DMPU9250
-)
 
 if(PROJECT_USE_ZEPHYR)
 zephyr_library_named(eMPL)
@@ -47,8 +44,5 @@ target_include_directories(eMPL PUBLIC
 )
 target_link_libraries(eMPL
     ${EMPL_LIBS_COMMON}
-)
-target_compile_options(eMPL PRIVATE
-    ${EMPL_FLAGS_COMMON}
 )
 endif()
