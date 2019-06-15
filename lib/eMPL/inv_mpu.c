@@ -1705,7 +1705,7 @@ static int get_6050_accel_prod_shift(struct mpu_state_s *st, float *st_shift)
     return 0;
 }
 
-static int mpu_6050_accel_self_test(struct mpu_state_s *st, long *bias_regular, long *bias_st)
+static int accel_6050_self_test(struct mpu_state_s *st, long *bias_regular, long *bias_st, int debug)
 {
     int jj, result = 0;
     float st_shift[3], st_shift_cust, st_shift_var;
@@ -1725,8 +1725,11 @@ static int mpu_6050_accel_self_test(struct mpu_state_s *st, long *bias_regular, 
 
     accel_max_z_bias = (.23f * 65535.f);
     accel_max_xy_bias = (.18f * 65535.f);
-    log_i("ACCEL Bias Test:\r\n");
-    log_i("Initial Biases:%ld, %ld, %ld\r\n", bias_regular[0], bias_regular[1], bias_regular[2]);
+
+    if(debug) {
+        log_i("ACCEL Bias Test:\r\n");
+        log_i("Initial Biases:%ld, %ld, %ld\r\n", bias_regular[0], bias_regular[1], bias_regular[2]);
+    }
 
     if(result == 0) {
         if(bias_regular[0]>accel_max_xy_bias) {
@@ -1746,7 +1749,7 @@ static int mpu_6050_accel_self_test(struct mpu_state_s *st, long *bias_regular, 
     return result;
 }
 
-static int mpu_6050_gyro_self_test(struct mpu_state_s *st, long *bias_regular, long *bias_st)
+static int gyro_6050_self_test(struct mpu_state_s *st, long *bias_regular, long *bias_st, int debug)
 {
     int jj, result = 0;
     unsigned char tmp[3];
@@ -1775,8 +1778,12 @@ static int mpu_6050_gyro_self_test(struct mpu_state_s *st, long *bias_regular, l
     }
 
     gyro_max_bias = (20.f * 65535.f);
-    log_i("GYRO Bias Test:\r\n");
-    log_i("Initial Biases:%ld, %ld, %ld\r\n", bias_regular[0], bias_regular[1], bias_regular[2]);
+
+    if(debug) {
+        log_i("GYRO Bias Test:\r\n");
+        log_i("Initial Biases:%ld, %ld, %ld\r\n", bias_regular[0], bias_regular[1], bias_regular[2]);
+    }
+
     if(result == 0) {
         if(bias_regular[0]>gyro_max_bias) {
             log_e("GYRO FAIL X\r\n");
@@ -1860,7 +1867,7 @@ AKM_restore:
     return result;
 }
 
-static int get_st_biases(struct mpu_state_s *st, long *gyro, long *accel, unsigned char hw_test)
+static int get_st_6050_biases(struct mpu_state_s *st, long *gyro, long *accel, unsigned char hw_test, int debug)
 {
     unsigned char data[MAX_PACKET_LENGTH];
     unsigned char packet_count, ii;
@@ -1929,6 +1936,9 @@ static int get_st_biases(struct mpu_state_s *st, long *gyro, long *accel, unsign
     gyro[0] = gyro[1] = gyro[2] = 0;
     accel[0] = accel[1] = accel[2] = 0;
 
+    if(debug)
+        log_i("Starting Bias Loop Reads\n");
+
     for (ii = 0; ii < packet_count; ii++) {
         short accel_cur[3], gyro_cur[3];
         if (i2c_read(st, st->hw->addr, st->reg->fifo_r_w, MAX_PACKET_LENGTH, data))
@@ -1946,6 +1956,10 @@ static int get_st_biases(struct mpu_state_s *st, long *gyro, long *accel, unsign
         gyro[1] += (long)gyro_cur[1];
         gyro[2] += (long)gyro_cur[2];
     }
+
+    if(debug)
+        log_i("Samples: %u\n", ii);
+
 #ifdef EMPL_NO_64BIT
     gyro[0] = (long)(((float)gyro[0]*65536.f) / st->test->gyro_sens / packet_count);
     gyro[1] = (long)(((float)gyro[1]*65536.f) / st->test->gyro_sens / packet_count);
@@ -1976,6 +1990,11 @@ static int get_st_biases(struct mpu_state_s *st, long *gyro, long *accel, unsign
     else
         accel[2] += 65536L;
 #endif
+
+    if(debug) {
+        log_i("Accel offset data HWST bit=%d: %7.4f %7.4f %7.4f\r\n", hw_test, accel[0]/65536.f, accel[1]/65536.f, accel[2]/65536.f);
+        log_i("Gyro offset data HWST bit=%d: %7.4f %7.4f %7.4f\r\n", hw_test, gyro[0]/65536.f, gyro[1]/65536.f, gyro[2]/65536.f);
+    }
 
     return 0;
 }
@@ -2325,6 +2344,40 @@ static int get_st_6500_biases(struct mpu_state_s *st, long *gyro, long *accel, u
 
     return 0;
 }
+
+static int get_st_biases(struct mpu_state_s *st, long *gyro, long *accel, unsigned char hw_test, int debug)
+{
+    if (st->mputype == MPU_TYPE_MPU6050)
+        return get_st_6050_biases(st, gyro, accel, hw_test, debug);
+
+    if (st->mputype == MPU_TYPE_MPU6500)
+        return get_st_6500_biases(st, gyro, accel, hw_test, debug);
+
+    return -1;
+}
+
+static int accel_self_test(struct mpu_state_s *st, long *bias_regular, long *bias_st, int debug)
+{
+    if (st->mputype == MPU_TYPE_MPU6050)
+        return accel_6050_self_test(st, bias_regular, bias_st, debug);
+
+    if (st->mputype == MPU_TYPE_MPU6500)
+        return accel_6500_self_test(st, bias_regular, bias_st, debug);
+
+    return -1;
+}
+
+static int gyro_self_test(struct mpu_state_s *st, long *bias_regular, long *bias_st, int debug)
+{
+    if (st->mputype == MPU_TYPE_MPU6050)
+        return gyro_6050_self_test(st, bias_regular, bias_st, debug);
+
+    if (st->mputype == MPU_TYPE_MPU6500)
+        return gyro_6500_self_test(st, bias_regular, bias_st, debug);
+
+    return -1;
+}
+
 /**
  *  @brief      Trigger gyro/accel/compass self-test for MPU6500/MPU9250
  *  On success/error, the self-test returns a mask representing the sensor(s)
@@ -2341,23 +2394,20 @@ static int get_st_6500_biases(struct mpu_state_s *st, long *gyro, long *accel, u
  *  @param[in]  debug       Debug flag used to print out more detailed logs. Must first set up logging in Motion Driver.
  *  @return     Result mask (see above).
  */
-int mpu_run_6500_self_test(struct mpu_state_s *st, long *gyro, long *accel, unsigned char debug)
+int mpu_run_self_test(struct mpu_state_s *st, long *gyro, long *accel, int debug)
 {
     const unsigned char tries = 2;
     long gyro_st[3], accel_st[3];
     unsigned char accel_result, gyro_result;
     unsigned char compass_result;
     int ii;
-
     int result;
     unsigned char accel_fsr, fifo_sensors, sensors_on;
     unsigned short gyro_fsr, sample_rate, lpf;
     unsigned char dmp_was_on;
 
-
-
-    if(debug)
-        log_i("Starting MPU6500 HWST!\r\n");
+    if (debug)
+        log_i("Starting HWST!\r\n");
 
     if (st->chip_cfg.dmp_on) {
         mpu_set_dmp_state(st, 0);
@@ -2377,12 +2427,13 @@ int mpu_run_6500_self_test(struct mpu_state_s *st, long *gyro, long *accel, unsi
         log_i("Retrieving Biases\r\n");
 
     for (ii = 0; ii < tries; ii++)
-        if (!get_st_6500_biases(st, gyro, accel, 0, debug))
+        if (!get_st_biases(st, gyro, accel, 0, debug))
             break;
     if (ii == tries) {
         /* If we reach this point, we most likely encountered an I2C error.
          * We'll just report an error for all three sensors.
          */
+
         if(debug)
             log_i("Retrieving Biases Error - possible I2C error\n");
 
@@ -2394,10 +2445,9 @@ int mpu_run_6500_self_test(struct mpu_state_s *st, long *gyro, long *accel, unsi
         log_i("Retrieving ST Biases\n");
 
     for (ii = 0; ii < tries; ii++)
-        if (!get_st_6500_biases(st, gyro_st, accel_st, 1, debug))
+        if (!get_st_biases(st, gyro_st, accel_st, 1, debug))
             break;
     if (ii == tries) {
-
         if(debug)
             log_i("Retrieving ST Biases Error - possible I2C error\n");
 
@@ -2406,11 +2456,11 @@ int mpu_run_6500_self_test(struct mpu_state_s *st, long *gyro, long *accel, unsi
         goto restore;
     }
 
-    accel_result = accel_6500_self_test(st, accel, accel_st, debug);
+    accel_result = accel_self_test(st, accel, accel_st, debug);
     if(debug)
         log_i("Accel Self Test Results: %d\n", accel_result);
 
-    gyro_result = gyro_6500_self_test(st, gyro, gyro_st, debug);
+    gyro_result = gyro_self_test(st, gyro, gyro_st, debug);
     if(debug)
         log_i("Gyro Self Test Results: %d\n", gyro_result);
 
@@ -2434,107 +2484,6 @@ int mpu_run_6500_self_test(struct mpu_state_s *st, long *gyro, long *accel, unsi
 restore:
     if(debug)
         log_i("Exiting HWST\n");
-    /* Set to invalid values to ensure no I2C writes are skipped. */
-    st->chip_cfg.gyro_fsr = 0xFF;
-    st->chip_cfg.accel_fsr = 0xFF;
-    st->chip_cfg.lpf = 0xFF;
-    st->chip_cfg.sample_rate = 0xFFFF;
-    st->chip_cfg.sensors = 0xFF;
-    st->chip_cfg.fifo_enable = 0xFF;
-    st->chip_cfg.clk_src = INV_CLK_PLL;
-    mpu_set_gyro_fsr(st, gyro_fsr);
-    mpu_set_accel_fsr(st, accel_fsr);
-    mpu_set_lpf(st, lpf);
-    mpu_set_sample_rate(st, sample_rate);
-    mpu_set_sensors(st, sensors_on);
-    mpu_configure_fifo(st, fifo_sensors);
-
-    if (dmp_was_on)
-        mpu_set_dmp_state(st, 1);
-
-    return result;
-}
-
- /*
- *  \n This function must be called with the device either face-up or face-down
- *  (z-axis is parallel to gravity).
- *  @param[out] gyro        Gyro biases in q16 format.
- *  @param[out] accel       Accel biases (if applicable) in q16 format.
- *  @return     Result mask (see above).
- */
-int mpu_run_self_test(struct mpu_state_s *st, long *gyro, long *accel)
-{
-    const unsigned char tries = 2;
-    long gyro_st[3], accel_st[3];
-    unsigned char accel_result, gyro_result;
-    unsigned char compass_result;
-    int ii;
-    int result;
-    unsigned char accel_fsr, fifo_sensors, sensors_on;
-    unsigned short gyro_fsr, sample_rate, lpf;
-    unsigned char dmp_was_on;
-
-    if (st->chip_cfg.dmp_on) {
-        mpu_set_dmp_state(st, 0);
-        dmp_was_on = 1;
-    } else
-        dmp_was_on = 0;
-
-    /* Get initial settings. */
-    mpu_get_gyro_fsr(st, &gyro_fsr);
-    mpu_get_accel_fsr(st, &accel_fsr);
-    mpu_get_lpf(st, &lpf);
-    mpu_get_sample_rate(st, &sample_rate);
-    sensors_on = st->chip_cfg.sensors;
-    mpu_get_fifo_config(st, &fifo_sensors);
-
-    /* For older chips, the self-test will be different. */
-    if (st->mputype == MPU_TYPE_MPU6050) {
-        for (ii = 0; ii < tries; ii++)
-            if (!get_st_biases(st, gyro, accel, 0))
-                break;
-        if (ii == tries) {
-            /* If we reach this point, we most likely encountered an I2C error.
-             * We'll just report an error for all three sensors.
-             */
-            result = 0;
-            goto restore;
-        }
-        for (ii = 0; ii < tries; ii++)
-            if (!get_st_biases(st, gyro_st, accel_st, 1))
-                break;
-        if (ii == tries) {
-            /* Again, probably an I2C error. */
-            result = 0;
-            goto restore;
-        }
-        accel_result = mpu_6050_accel_self_test(st, accel, accel_st);
-        gyro_result = mpu_6050_gyro_self_test(st, gyro, gyro_st);
-
-        result = 0;
-        if (!gyro_result)
-            result |= 0x01;
-        if (!accel_result)
-            result |= 0x02;
-
-        if (st->magtype == MAG_TYPE_NONE) {
-            result |= 0x04;
-        }
-        else {
-            compass_result = ak89xx_compass_self_test(st);
-            if (!compass_result)
-                result |= 0x04;
-        }
-    }
-    else if (st->mputype == MPU_TYPE_MPU6500) {
-        /* For now, this function will return a "pass" result for all three sensors
-         * for compatibility with current test applications.
-         */
-        get_st_biases(st, gyro, accel, 0);
-        result = 0x7;
-    }
-
-restore:
     /* Set to invalid values to ensure no I2C writes are skipped. */
     st->chip_cfg.gyro_fsr = 0xFF;
     st->chip_cfg.accel_fsr = 0xFF;
