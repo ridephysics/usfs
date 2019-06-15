@@ -447,7 +447,7 @@ enum lp_accel_rate_e {
 #endif
 
 #if defined MPU6050
-const struct gyro_reg_s reg = {
+const struct gyro_reg_s _reg = {
     .who_am_i       = 0x75,
     .rate_div       = 0x19,
     .lpf            = 0x1A,
@@ -490,7 +490,7 @@ const struct gyro_reg_s reg = {
     .i2c_delay_ctrl = 0x67
 #endif
 };
-const struct hw_s hw = {
+const struct hw_s _hw = {
     .addr           = 0x68,
     .max_fifo       = 1024,
     .num_reg        = 118,
@@ -502,7 +502,7 @@ const struct hw_s hw = {
 #endif
 };
 
-const struct test_s test = {
+const struct test_s _test = {
     .gyro_sens      = 32768/250,
     .accel_sens     = 32768/16,
     .reg_rate_div   = 0,    /* 1kHz. */
@@ -520,12 +520,12 @@ const struct test_s test = {
 };
 
 static struct gyro_state_s st = {
-    .reg = &reg,
-    .hw = &hw,
-    .test = &test
+    .reg = &_reg,
+    .hw = &_hw,
+    .test = &_test
 };
 #elif defined MPU6500
-const struct gyro_reg_s reg = {
+const struct gyro_reg_s _reg = {
     .who_am_i       = 0x75,
     .rate_div       = 0x19,
     .lpf            = 0x1A,
@@ -570,7 +570,7 @@ const struct gyro_reg_s reg = {
     .i2c_delay_ctrl = 0x67
 #endif
 };
-const struct hw_s hw = {
+const struct hw_s _hw = {
     .addr           = 0x68,
     .max_fifo       = 1024,
     .num_reg        = 128,
@@ -582,7 +582,7 @@ const struct hw_s hw = {
 #endif
 };
 
-const struct test_s test = {
+const struct test_s _test = {
     .gyro_sens      = 32768/250,
     .accel_sens     = 32768/2,  //FSR = +-2G = 16384 LSB/G
     .reg_rate_div   = 0,    /* 1kHz. */
@@ -602,9 +602,9 @@ const struct test_s test = {
 };
 
 static struct gyro_state_s st = {
-    .reg = &reg,
-    .hw = &hw,
-    .test = &test
+    .reg = &_reg,
+    .hw = &_hw,
+    .test = &_test
 };
 #endif
 
