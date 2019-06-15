@@ -2304,6 +2304,9 @@ static int get_st_6500_biases(struct mpu_state_s *st, long *gyro, long *accel, u
                     packet_count = st->test->packet_thresh - s;
         read_size = packet_count * MAX_PACKET_LENGTH;
 
+        if (read_size > 64)
+            read_size = 64;
+
         //burst read from FIFO
         if (i2c_read(st, st->hw->addr, st->reg->fifo_r_w, read_size, data))
                         return -1;
