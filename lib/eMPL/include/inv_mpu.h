@@ -22,6 +22,7 @@
 #define _INV_MPU_H_
 
 #include <crossi2c.h>
+#include <stdint.h>
 
 #define INV_X_GYRO      (0x40)
 #define INV_Y_GYRO      (0x20)
@@ -59,65 +60,65 @@ enum mag_type_e {
 
 /* Hardware registers needed by driver. */
 struct mpu_gyro_reg_s {
-    unsigned char who_am_i;
-    unsigned char rate_div;
-    unsigned char lpf;
-    unsigned char prod_id;
-    unsigned char user_ctrl;
-    unsigned char fifo_en;
-    unsigned char gyro_cfg;
-    unsigned char accel_cfg;
-    unsigned char accel_cfg2;
-    unsigned char lp_accel_odr;
-    unsigned char motion_thr;
-    unsigned char motion_dur;
-    unsigned char fifo_count_h;
-    unsigned char fifo_r_w;
-    unsigned char raw_gyro;
-    unsigned char raw_accel;
-    unsigned char temp;
-    unsigned char int_enable;
-    unsigned char dmp_int_status;
-    unsigned char int_status;
-    unsigned char accel_intel;
-    unsigned char pwr_mgmt_1;
-    unsigned char pwr_mgmt_2;
-    unsigned char int_pin_cfg;
-    unsigned char mem_r_w;
-    unsigned char accel_offs;
-    unsigned char i2c_mst;
-    unsigned char bank_sel;
-    unsigned char mem_start_addr;
-    unsigned char prgm_start_h;
+    uint8_t who_am_i;
+    uint8_t rate_div;
+    uint8_t lpf;
+    uint8_t prod_id;
+    uint8_t user_ctrl;
+    uint8_t fifo_en;
+    uint8_t gyro_cfg;
+    uint8_t accel_cfg;
+    uint8_t accel_cfg2;
+    uint8_t lp_accel_odr;
+    uint8_t motion_thr;
+    uint8_t motion_dur;
+    uint8_t fifo_count_h;
+    uint8_t fifo_r_w;
+    uint8_t raw_gyro;
+    uint8_t raw_accel;
+    uint8_t temp;
+    uint8_t int_enable;
+    uint8_t dmp_int_status;
+    uint8_t int_status;
+    uint8_t accel_intel;
+    uint8_t pwr_mgmt_1;
+    uint8_t pwr_mgmt_2;
+    uint8_t int_pin_cfg;
+    uint8_t mem_r_w;
+    uint8_t accel_offs;
+    uint8_t i2c_mst;
+    uint8_t bank_sel;
+    uint8_t mem_start_addr;
+    uint8_t prgm_start_h;
 
     struct {
-        unsigned char s0_addr;
-        unsigned char s0_reg;
-        unsigned char s0_ctrl;
-        unsigned char s1_addr;
-        unsigned char s1_reg;
-        unsigned char s1_ctrl;
-        unsigned char s4_ctrl;
-        unsigned char s0_do;
-        unsigned char s1_do;
-        unsigned char i2c_delay_ctrl;
-        unsigned char raw_compass;
+        uint8_t s0_addr;
+        uint8_t s0_reg;
+        uint8_t s0_ctrl;
+        uint8_t s1_addr;
+        uint8_t s1_reg;
+        uint8_t s1_ctrl;
+        uint8_t s4_ctrl;
+        uint8_t s0_do;
+        uint8_t s1_do;
+        uint8_t i2c_delay_ctrl;
+        uint8_t raw_compass;
         /* The I2C_MST_VDDIO bit is in this register. */
-        unsigned char yg_offs_tc;
+        uint8_t yg_offs_tc;
     } ak89xx;
 };
 
 /* Information specific to a particular device. */
 struct mpu_hw_s {
-    unsigned char addr;
-    unsigned short max_fifo;
-    unsigned char num_reg;
-    unsigned short temp_sens;
-    short temp_offset;
-    unsigned short bank_size;
+    uint8_t addr;
+    uint16_t max_fifo;
+    uint8_t num_reg;
+    uint16_t temp_sens;
+    int16_t temp_offset;
+    uint16_t bank_size;
 
     struct {
-        unsigned short compass_fsr;
+        uint16_t compass_fsr;
     } ak89xx;
 };
 
@@ -126,13 +127,13 @@ struct mpu_hw_s {
  * TODO: This is tacky. Fix it.
  */
 struct mpu_motion_int_cache_s {
-    unsigned short gyro_fsr;
-    unsigned char accel_fsr;
-    unsigned short lpf;
-    unsigned short sample_rate;
-    unsigned char sensors_on;
-    unsigned char fifo_sensors;
-    unsigned char dmp_on;
+    uint16_t gyro_fsr;
+    uint8_t accel_fsr;
+    uint16_t lpf;
+    uint16_t sample_rate;
+    uint8_t sensors_on;
+    uint8_t fifo_sensors;
+    uint8_t dmp_on;
 };
 
 /* Cached chip configuration data.
@@ -140,61 +141,61 @@ struct mpu_motion_int_cache_s {
  */
 struct mpu_chip_cfg_s {
     /* Matches gyro_cfg >> 3 & 0x03 */
-    unsigned char gyro_fsr;
+    uint8_t gyro_fsr;
     /* Matches accel_cfg >> 3 & 0x03 */
-    unsigned char accel_fsr;
+    uint8_t accel_fsr;
     /* Enabled sensors. Uses same masks as fifo_en, NOT pwr_mgmt_2. */
-    unsigned char sensors;
+    uint8_t sensors;
     /* Matches config register. */
-    unsigned char lpf;
-    unsigned char clk_src;
+    uint8_t lpf;
+    uint8_t clk_src;
     /* Sample rate, NOT rate divider. */
-    unsigned short sample_rate;
+    uint16_t sample_rate;
     /* Matches fifo_en register. */
-    unsigned char fifo_enable;
+    uint8_t fifo_enable;
     /* Matches int enable register. */
-    unsigned char int_enable;
+    uint8_t int_enable;
     /* 1 if devices on auxiliary I2C bus appear on the primary. */
-    unsigned char bypass_mode;
+    uint8_t bypass_mode;
     /* 1 if half-sensitivity.
      * NOTE: This doesn't belong here, but everything else in hw_s is const,
      * and this allows us to save some precious RAM.
      */
-    unsigned char accel_half;
+    uint8_t accel_half;
     /* 1 if device in low-power accel-only mode. */
-    unsigned char lp_accel_mode;
+    uint8_t lp_accel_mode;
     /* 1 if interrupts are only triggered on motion events. */
-    unsigned char int_motion_only;
+    uint8_t int_motion_only;
     struct mpu_motion_int_cache_s cache;
     /* 1 for active low interrupts. */
-    unsigned char active_low_int;
+    uint8_t active_low_int;
     /* 1 for latched interrupts. */
-    unsigned char latched_int;
+    uint8_t latched_int;
     /* 1 if DMP is enabled. */
-    unsigned char dmp_on;
+    uint8_t dmp_on;
     /* Ensures that DMP will only be loaded once. */
-    unsigned char dmp_loaded;
+    uint8_t dmp_loaded;
     /* Sampling rate used when DMP is enabled. */
-    unsigned short dmp_sample_rate;
+    uint16_t dmp_sample_rate;
 
     struct {
         /* Compass sample rate. */
-        unsigned short compass_sample_rate;
-        unsigned char compass_addr;
-        short mag_sens_adj[3];
+        uint16_t compass_sample_rate;
+        uint8_t compass_addr;
+        int16_t mag_sens_adj[3];
     } ak89xx;
 };
 
 /* Information for self-test. */
 struct mpu_test_s {
-    unsigned long gyro_sens;
-    unsigned long accel_sens;
-    unsigned char reg_rate_div;
-    unsigned char reg_lpf;
-    unsigned char reg_gyro_fsr;
-    unsigned char reg_accel_fsr;
-    unsigned short wait_ms;
-    unsigned char packet_thresh;
+    uint32_t gyro_sens;
+    uint32_t accel_sens;
+    uint8_t reg_rate_div;
+    uint8_t reg_lpf;
+    uint8_t reg_gyro_fsr;
+    uint8_t reg_accel_fsr;
+    uint16_t wait_ms;
+    uint8_t packet_thresh;
     float min_dps;
     float max_dps;
     float max_gyro_var;
@@ -204,7 +205,7 @@ struct mpu_test_s {
 
     struct {
         float max_g_offset;
-        unsigned short sample_wait_ms;
+        uint16_t sample_wait_ms;
     } mpu6500;
 };
 
@@ -224,74 +225,74 @@ struct mpu_state_s {
 
 /* Set up APIs */
 int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e magtype, struct crossi2c_bus *i2cbus);
-int mpu_set_bypass(struct mpu_state_s *st, unsigned char bypass_on);
+int mpu_set_bypass(struct mpu_state_s *st, uint8_t bypass_on);
 
 /* Configuration APIs */
-int mpu_lp_accel_mode(struct mpu_state_s *st, unsigned short rate);
-int mpu_lp_motion_interrupt(struct mpu_state_s *st, unsigned short thresh, unsigned char time,
-    unsigned short lpa_freq);
-int mpu_set_int_level(struct mpu_state_s *st, unsigned char active_low);
-int mpu_set_int_latched(struct mpu_state_s *st, unsigned char enable);
+int mpu_lp_accel_mode(struct mpu_state_s *st, uint16_t rate);
+int mpu_lp_motion_interrupt(struct mpu_state_s *st, uint16_t thresh, uint8_t time,
+    uint16_t lpa_freq);
+int mpu_set_int_level(struct mpu_state_s *st, uint8_t active_low);
+int mpu_set_int_latched(struct mpu_state_s *st, uint8_t enable);
 
-int mpu_set_dmp_state(struct mpu_state_s *st, unsigned char enable);
-int mpu_get_dmp_state(struct mpu_state_s *st, unsigned char *enabled);
+int mpu_set_dmp_state(struct mpu_state_s *st, uint8_t enable);
+int mpu_get_dmp_state(struct mpu_state_s *st, uint8_t *enabled);
 
-int mpu_get_lpf(struct mpu_state_s *st, unsigned short *lpf);
-int mpu_set_lpf(struct mpu_state_s *st, unsigned short lpf);
+int mpu_get_lpf(struct mpu_state_s *st, uint16_t *lpf);
+int mpu_set_lpf(struct mpu_state_s *st, uint16_t lpf);
 
-int mpu_get_gyro_fsr(struct mpu_state_s *st, unsigned short *fsr);
-int mpu_set_gyro_fsr(struct mpu_state_s *st, unsigned short fsr);
+int mpu_get_gyro_fsr(struct mpu_state_s *st, uint16_t *fsr);
+int mpu_set_gyro_fsr(struct mpu_state_s *st, uint16_t fsr);
 
-int mpu_get_accel_fsr(struct mpu_state_s *st, unsigned char *fsr);
-int mpu_set_accel_fsr(struct mpu_state_s *st, unsigned char fsr);
+int mpu_get_accel_fsr(struct mpu_state_s *st, uint8_t *fsr);
+int mpu_set_accel_fsr(struct mpu_state_s *st, uint8_t fsr);
 
-int mpu_get_compass_fsr(struct mpu_state_s *st, unsigned short *fsr);
+int mpu_get_compass_fsr(struct mpu_state_s *st, uint16_t *fsr);
 
 int mpu_get_gyro_sens(struct mpu_state_s *st, float *sens);
-int mpu_get_accel_sens(struct mpu_state_s *st, unsigned short *sens);
+int mpu_get_accel_sens(struct mpu_state_s *st, uint16_t *sens);
 
-int mpu_get_sample_rate(struct mpu_state_s *st, unsigned short *rate);
-int mpu_set_sample_rate(struct mpu_state_s *st, unsigned short rate);
-int mpu_get_compass_sample_rate(struct mpu_state_s *st, unsigned short *rate);
-int mpu_set_compass_sample_rate(struct mpu_state_s *st, unsigned short rate);
+int mpu_get_sample_rate(struct mpu_state_s *st, uint16_t *rate);
+int mpu_set_sample_rate(struct mpu_state_s *st, uint16_t rate);
+int mpu_get_compass_sample_rate(struct mpu_state_s *st, uint16_t *rate);
+int mpu_set_compass_sample_rate(struct mpu_state_s *st, uint16_t rate);
 
-int mpu_get_fifo_config(struct mpu_state_s *st, unsigned char *sensors);
-int mpu_configure_fifo(struct mpu_state_s *st, unsigned char sensors);
+int mpu_get_fifo_config(struct mpu_state_s *st, uint8_t *sensors);
+int mpu_configure_fifo(struct mpu_state_s *st, uint8_t sensors);
 
-int mpu_get_power_state(struct mpu_state_s *st, unsigned char *power_on);
-int mpu_set_sensors(struct mpu_state_s *st, unsigned char sensors);
+int mpu_get_power_state(struct mpu_state_s *st, uint8_t *power_on);
+int mpu_set_sensors(struct mpu_state_s *st, uint8_t sensors);
 
-int mpu_read_6500_accel_bias(struct mpu_state_s *st, long *accel_bias);
-int mpu_read_6500_gyro_bias(struct mpu_state_s *st, long *gyro_bias);
-int mpu_set_gyro_bias_reg(struct mpu_state_s *st, long * gyro_bias);
-int mpu_set_accel_bias_6500_reg(struct mpu_state_s *st, const long *accel_bias);
-int mpu_read_6050_accel_bias(struct mpu_state_s *st, long *accel_bias);
-int mpu_set_accel_bias_6050_reg(struct mpu_state_s *st, const long *accel_bias);
+int mpu_read_6500_accel_bias(struct mpu_state_s *st, int32_t *accel_bias);
+int mpu_read_6500_gyro_bias(struct mpu_state_s *st, int32_t *gyro_bias);
+int mpu_set_gyro_bias_reg(struct mpu_state_s *st, int32_t * gyro_bias);
+int mpu_set_accel_bias_6500_reg(struct mpu_state_s *st, const int32_t *accel_bias);
+int mpu_read_6050_accel_bias(struct mpu_state_s *st, int32_t *accel_bias);
+int mpu_set_accel_bias_6050_reg(struct mpu_state_s *st, const int32_t *accel_bias);
 
 /* Data getter/setter APIs */
-int mpu_get_gyro_reg(struct mpu_state_s *st, short *data, unsigned long *timestamp);
-int mpu_get_accel_reg(struct mpu_state_s *st, short *data, unsigned long *timestamp);
-int mpu_get_compass_reg(struct mpu_state_s *st, short *data, unsigned long *timestamp);
-int mpu_get_temperature(struct mpu_state_s *st, long *data, unsigned long *timestamp);
+int mpu_get_gyro_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp);
+int mpu_get_accel_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp);
+int mpu_get_compass_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp);
+int mpu_get_temperature(struct mpu_state_s *st, int32_t *data, uint64_t *timestamp);
 
-int mpu_get_int_status(struct mpu_state_s *st, short *status);
-int mpu_read_fifo(struct mpu_state_s *st, short *gyro, short *accel, unsigned long *timestamp,
-    unsigned char *sensors, unsigned char *more);
-int mpu_read_fifo_stream(struct mpu_state_s *st, unsigned short length, unsigned char *data,
-    unsigned char *more);
+int mpu_get_int_status(struct mpu_state_s *st, int16_t *status);
+int mpu_read_fifo(struct mpu_state_s *st, int16_t *gyro, int16_t *accel, uint64_t *timestamp,
+    uint8_t *sensors, uint8_t *more);
+int mpu_read_fifo_stream(struct mpu_state_s *st, uint16_t length, uint8_t *data,
+    uint8_t *more);
 int mpu_reset_fifo(struct mpu_state_s *st);
 
-int mpu_write_mem(struct mpu_state_s *st, unsigned short mem_addr, unsigned short length,
-    unsigned char *data);
-int mpu_read_mem(struct mpu_state_s *st, unsigned short mem_addr, unsigned short length,
-    unsigned char *data);
-int mpu_load_firmware(struct mpu_state_s *st, unsigned short length, const unsigned char *firmware,
-    unsigned short start_addr, unsigned short sample_rate);
+int mpu_write_mem(struct mpu_state_s *st, uint16_t mem_addr, uint16_t length,
+    uint8_t *data);
+int mpu_read_mem(struct mpu_state_s *st, uint16_t mem_addr, uint16_t length,
+    uint8_t *data);
+int mpu_load_firmware(struct mpu_state_s *st, uint16_t length, const uint8_t *firmware,
+    uint16_t start_addr, uint16_t sample_rate);
 
 int mpu_reg_dump(struct mpu_state_s *st);
-int mpu_read_reg(struct mpu_state_s *st, unsigned char reg, unsigned char *data);
-int mpu_run_self_test(struct mpu_state_s *st, long *gyro, long *accel, int debug);
-int mpu_register_tap_cb(struct mpu_state_s *st, void (*func)(unsigned char, unsigned char));
+int mpu_read_reg(struct mpu_state_s *st, uint8_t reg, uint8_t *data);
+int mpu_run_self_test(struct mpu_state_s *st, int32_t *gyro, int32_t *accel, int debug);
+int mpu_register_tap_cb(struct mpu_state_s *st, void (*func)(uint8_t, uint8_t));
 
 #endif  /* #ifndef _INV_MPU_H_ */
 
