@@ -290,7 +290,7 @@ int mpu_load_firmware(struct mpu_state_s *st, uint16_t length, const uint8_t *fi
     uint16_t start_addr, uint16_t sample_rate);
 
 int mpu_reg_dump(struct mpu_state_s *st);
-int mpu_read_reg(struct mpu_state_s *st, uint8_t reg, uint8_t *data);
+int mpu_read_reg(struct mpu_state_s *st, uint8_t reg, void *data);
 int mpu_run_self_test(struct mpu_state_s *st, int32_t *gyro, int32_t *accel, int debug);
 int mpu_register_tap_cb(struct mpu_state_s *st, void (*func)(uint8_t, uint8_t));
 

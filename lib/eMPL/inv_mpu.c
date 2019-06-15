@@ -203,7 +203,7 @@ int mpu_reg_dump(struct mpu_state_s *st)
  *  @param[out] data    Register data.
  *  @return     0 if successful.
  */
-int mpu_read_reg(struct mpu_state_s *st, uint8_t reg, uint8_t *data)
+int mpu_read_reg(struct mpu_state_s *st, uint8_t reg, void *data)
 {
     if (reg == st->reg->fifo_r_w || reg == st->reg->mem_r_w)
         return -1;
