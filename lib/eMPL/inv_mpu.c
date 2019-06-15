@@ -457,6 +457,14 @@ int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e ma
         return -1;
     }
 
+    if (i2c_read(st, st->hw->addr, st->reg->who_am_i, 1, data))
+        return -1;
+
+    if (data[0] != 0x71) {
+        log_e("unsupported device: 0x%02x", data[0]);
+        return -1;
+    }
+
     /* Reset device. */
     data[0] = BIT_RESET;
     if (i2c_write(st, st->hw->addr, st->reg->pwr_mgmt_1, 1, data))
