@@ -1,6 +1,7 @@
 #include <em7180.h>
 #include <em7180_regs.h>
 #include "em7180_p.h"
+#include <usfs.h>
 
 #define CROSSLOG_TAG "em7180"
 #include <crosslog.h>
@@ -44,7 +45,7 @@ int em7180_passthrough_enter(struct em7180 *dev) {
     }
 
     do {
-        em7180_usleep(5000);
+        usfs_usleep(5000);
 
         rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
         if (rc) {
@@ -80,7 +81,7 @@ int em7180_passthrough_exit(struct em7180 *dev) {
     }
 
     do {
-        em7180_usleep(5000);
+        usfs_usleep(5000);
 
         rc = em7180_read(dev, EM7180_REG_PASSTHROUGH_STATUS, &ptstatus, 1);
         if (rc) {
