@@ -613,7 +613,7 @@ static int get_st_6500_biases(struct mpu_state_s *st, int32_t *gyro, int32_t *ac
         delay_ms(st->test->mpu6500.sample_wait_ms); //wait 10ms to fill FIFO
         if (i2c_read(st, st->hw->addr, st->reg->fifo_count_h, 2, data))
             return -1;
-        fifo_count = (data[0] << 8) | data[1];
+        fifo_count = (((uint16_t)data[0]) << 8) | data[1];
 
         if (fifo_count > (st->hw->max_fifo >> 1)) {
             /* FIFO is 50% full, better check overflow bit. */
