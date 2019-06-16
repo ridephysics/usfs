@@ -547,9 +547,12 @@ static int get_st_6500_biases(struct mpu_state_s *st, int32_t *gyro, int32_t *ac
 {
     uint8_t tmp[1];
     uint8_t data[MPU6500_HWST_MAX_PACKET_LENGTH];
-    uint8_t packet_count, ii;
     uint16_t fifo_count;
-    int s = 0, read_size = 0, ind;
+    size_t packet_count;
+    size_t ii;
+    size_t read_size;
+    size_t s = 0;
+    size_t ind;
 
     data[0] = 0x01;
     data[1] = 0;
@@ -658,19 +661,19 @@ static int get_st_6500_biases(struct mpu_state_s *st, int32_t *gyro, int32_t *ac
     }
 
     if(debug)
-        log_i("Samples: %d", s);
+        log_i("Samples: %zu", s);
 
     //stop FIFO
     data[0] = 0;
     if (i2c_write(st, st->hw->addr, st->reg->fifo_en, 1, data))
         return -1;
 
-    gyro[0] = (int32_t)(((int64_t)gyro[0]<<16) / st->test->gyro_sens / s);
-    gyro[1] = (int32_t)(((int64_t)gyro[1]<<16) / st->test->gyro_sens / s);
-    gyro[2] = (int32_t)(((int64_t)gyro[2]<<16) / st->test->gyro_sens / s);
-    accel[0] = (int32_t)(((int64_t)accel[0]<<16) / st->test->accel_sens / s);
-    accel[1] = (int32_t)(((int64_t)accel[1]<<16) / st->test->accel_sens / s);
-    accel[2] = (int32_t)(((int64_t)accel[2]<<16) / st->test->accel_sens / s);
+    gyro[0] = (int32_t)(((int64_t)gyro[0]<<16) / st->test->gyro_sens / ((ssize_t)s));
+    gyro[1] = (int32_t)(((int64_t)gyro[1]<<16) / st->test->gyro_sens / ((ssize_t)s));
+    gyro[2] = (int32_t)(((int64_t)gyro[2]<<16) / st->test->gyro_sens / ((ssize_t)s));
+    accel[0] = (int32_t)(((int64_t)accel[0]<<16) / st->test->accel_sens / ((ssize_t)s));
+    accel[1] = (int32_t)(((int64_t)accel[1]<<16) / st->test->accel_sens / ((ssize_t)s));
+    accel[2] = (int32_t)(((int64_t)accel[2]<<16) / st->test->accel_sens / ((ssize_t)s));
     /* remove gravity from bias calculation */
     if (accel[2] > 0L)
         accel[2] -= 65536L;
