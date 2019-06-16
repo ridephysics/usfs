@@ -13,6 +13,7 @@ set(EM7180_INCS_COMMON
 set(EM7180_LIBS_COMMON
     crosslog
     crossi2c
+    usfs
 )
 
 if(PROJECT_USE_ZEPHYR)

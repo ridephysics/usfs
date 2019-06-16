@@ -14,6 +14,7 @@ set(EMPL_LIBS_COMMON
     crosslog
     crossi2c
     m
+    usfs
 )
 
 if(PROJECT_USE_ZEPHYR)
