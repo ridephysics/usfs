@@ -50,6 +50,12 @@ static const struct mpu_gyro_reg_s mpu6050_reg = {
     .bank_sel       = 0x6D,
     .mem_start_addr = 0x6E,
     .prgm_start_h   = 0x70,
+    .gyro_offset_x_h    = 0x13,
+    .gyro_offset_y_h    = 0x15,
+    .gyro_offset_z_h    = 0x17,
+    .accel_offset_x_h   = 0x06,
+    .accel_offset_y_h   = 0x08,
+    .accel_offset_z_h   = 0x0a,
 
     .ak89xx = {
         .raw_compass   = 0x49,
@@ -128,6 +134,12 @@ static const struct mpu_gyro_reg_s mpu6500_reg = {
     .bank_sel       = 0x6D,
     .mem_start_addr = 0x6E,
     .prgm_start_h   = 0x70,
+    .gyro_offset_x_h    = 0x13,
+    .gyro_offset_y_h    = 0x15,
+    .gyro_offset_z_h    = 0x17,
+    .accel_offset_x_h   = 0x77,
+    .accel_offset_y_h   = 0x7a,
+    .accel_offset_z_h   = 0x7d,
 
     .ak89xx = {
         .raw_compass   = 0x49,

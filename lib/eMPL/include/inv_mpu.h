@@ -90,6 +90,12 @@ struct mpu_gyro_reg_s {
     uint8_t bank_sel;
     uint8_t mem_start_addr;
     uint8_t prgm_start_h;
+    uint8_t gyro_offset_x_h;
+    uint8_t gyro_offset_y_h;
+    uint8_t gyro_offset_z_h;
+    uint8_t accel_offset_x_h;
+    uint8_t accel_offset_y_h;
+    uint8_t accel_offset_z_h;
 
     struct {
         uint8_t s0_addr;
@@ -257,12 +263,10 @@ int mpu_configure_fifo(struct mpu_state_s *st, uint8_t sensors);
 int mpu_get_power_state(struct mpu_state_s *st, uint8_t *power_on);
 int mpu_set_sensors(struct mpu_state_s *st, uint8_t sensors);
 
-int mpu_read_6500_accel_bias(struct mpu_state_s *st, int32_t *accel_bias);
-int mpu_read_6500_gyro_bias(struct mpu_state_s *st, int32_t *gyro_bias);
-int mpu_set_gyro_bias_reg(struct mpu_state_s *st, int32_t * gyro_bias);
-int mpu_set_accel_bias_6500_reg(struct mpu_state_s *st, const int32_t *accel_bias);
-int mpu_read_6050_accel_bias(struct mpu_state_s *st, int32_t *accel_bias);
-int mpu_set_accel_bias_6050_reg(struct mpu_state_s *st, const int32_t *accel_bias);
+int mpu_read_gyro_bias(struct mpu_state_s *st, int32_t *gyro_bias);
+int mpu_set_gyro_bias_reg(struct mpu_state_s *st, const int32_t *gyro_bias);
+int mpu_read_accel_bias(struct mpu_state_s *st, int32_t *accel_bias);
+int mpu_set_accel_bias_reg(struct mpu_state_s *st, const int32_t *accel_bias);
 
 /* Data getter/setter APIs */
 int mpu_get_gyro_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp);
