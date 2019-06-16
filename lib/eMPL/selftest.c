@@ -623,7 +623,26 @@ static int get_st_6500_biases(struct mpu_state_s *st, int32_t *gyro, int32_t *ac
             if (i2c_read(st, st->hw->addr, st->reg->int_status, 1, tmp))
                 return -1;
             if (tmp[0] & BIT_FIFO_OVERFLOW) {
-                mpu_reset_fifo(st);
+                data[0] = 0;
+                if (i2c_write(st, st->hw->addr, st->reg->fifo_en, 1, data))
+                    return -1;
+                if (i2c_write(st, st->hw->addr, st->reg->user_ctrl, 1, data))
+                    return -1;
+
+                data[0] = BIT_FIFO_RST;
+                if (i2c_write(st, st->hw->addr, st->reg->user_ctrl, 1, data))
+                    return -1;
+
+                data[0] = BIT_FIFO_EN;
+                if (i2c_write(st, st->hw->addr, st->reg->user_ctrl, 1, data))
+                    return -1;
+
+                delay_ms(50);
+
+                data[0] = INV_XYZ_GYRO | INV_XYZ_ACCEL;
+                if (i2c_write(st, st->hw->addr, st->reg->fifo_en, 1, data))
+                    return -1;
+
                 continue;
             }
         }
