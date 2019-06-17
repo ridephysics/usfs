@@ -23,7 +23,16 @@
     }
 #elif defined(ESP_PLATFORM)
     #include <esp32/rom/ets_sys.h>
+    #include <esp_timer.h>
+
     #define usfs_usleep(x) ets_delay_us((x))
+
+    static inline uint64_t usfs_get_us(void) {
+	    int64_t now = esp_timer_get_time();
+	    if (now <= 0)
+		    return 0;
+	    return (uint64_t) now;
+    }
 #else
     #error "unsupported platform"
 #endif
