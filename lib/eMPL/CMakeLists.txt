@@ -13,7 +13,6 @@ set(EMPL_INCS_COMMON
 set(EMPL_LIBS_COMMON
     crosslog
     crossi2c
-    m
     usfs
 )
 
@@ -51,5 +50,6 @@ target_include_directories(eMPL PUBLIC
 )
 target_link_libraries(eMPL
     ${EMPL_LIBS_COMMON}
+    m
 )
 endif()
