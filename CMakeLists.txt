@@ -41,10 +41,10 @@ add_compile_options(
     -Wall
     -Wextra
     -Wshadow
-    -Wstrict-prototypes
-    -Wmissing-prototypes
     -Werror
 )
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wstrict-prototypes -Wmissing-prototypes")
 
 add_library(usfs SHARED
     ${USFS_SRCS_COMMON}
