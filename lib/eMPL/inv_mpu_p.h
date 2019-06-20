@@ -19,10 +19,6 @@ static inline void delay_ms(uint64_t ms) {
     usfs_usleep(ms * 1000);
 }
 
-static inline void get_ms(uint64_t *pts) {
-    *pts = usfs_get_us() / 1000;
-}
-
 #define log_i(fmt, ...)     CROSSLOGI(fmt, ##__VA_ARGS__)
 #define log_e(fmt, ...)     CROSSLOGE(fmt, ##__VA_ARGS__)
 

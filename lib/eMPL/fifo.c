@@ -137,7 +137,7 @@ int mpu_configure_fifo(struct mpu_state_s *st, uint8_t sensors)
  *  return a non-zero error code.
  *  @param[out] gyro        Gyro data in hardware units.
  *  @param[out] accel       Accel data in hardware units.
- *  @param[out] timestamp   Timestamp in milliseconds.
+ *  @param[out] timestamp   Timestamp in microseconds.
  *  @param[out] sensors     Mask of sensors read from FIFO.
  *  @param[out] more        Number of remaining packets.
  *  @return     0 if successful.
@@ -183,7 +183,7 @@ int mpu_read_fifo(struct mpu_state_s *st, int16_t *gyro, int16_t *accel, uint64_
             return -2;
         }
     }
-    get_ms(timestamp);
+    *timestamp = usfs_get_us();
 
     if (i2c_read(st, st->hw->addr, st->reg->fifo_r_w, packet_size, data))
         return -1;

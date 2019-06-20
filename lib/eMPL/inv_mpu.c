@@ -444,7 +444,7 @@ int mpu_lp_accel_mode(struct mpu_state_s *st, uint16_t rate)
 /**
  *  @brief      Read raw gyro data directly from the registers.
  *  @param[out] data        Raw data in hardware units.
- *  @param[out] timestamp   Timestamp in milliseconds. Null if not needed.
+ *  @param[out] timestamp   Timestamp in microseconds. Null if not needed.
  *  @return     0 if successful.
  */
 int mpu_get_gyro_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp)
@@ -460,14 +460,14 @@ int mpu_get_gyro_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp)
     data[1] = (tmp[2] << 8) | tmp[3];
     data[2] = (tmp[4] << 8) | tmp[5];
     if (timestamp)
-        get_ms(timestamp);
+        *timestamp = usfs_get_us();
     return 0;
 }
 
 /**
  *  @brief      Read raw accel data directly from the registers.
  *  @param[out] data        Raw data in hardware units.
- *  @param[out] timestamp   Timestamp in milliseconds. Null if not needed.
+ *  @param[out] timestamp   Timestamp in microseconds. Null if not needed.
  *  @return     0 if successful.
  */
 int mpu_get_accel_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp)
@@ -483,14 +483,14 @@ int mpu_get_accel_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp
     data[1] = (tmp[2] << 8) | tmp[3];
     data[2] = (tmp[4] << 8) | tmp[5];
     if (timestamp)
-        get_ms(timestamp);
+        *timestamp = usfs_get_us();
     return 0;
 }
 
 /**
  *  @brief      Read temperature data directly from the registers.
  *  @param[out] data        Data in q16 format.
- *  @param[out] timestamp   Timestamp in milliseconds. Null if not needed.
+ *  @param[out] timestamp   Timestamp in microseconds. Null if not needed.
  *  @return     0 if successful.
  */
 int mpu_get_temperature(struct mpu_state_s *st, int32_t *data, uint64_t *timestamp)
@@ -505,7 +505,7 @@ int mpu_get_temperature(struct mpu_state_s *st, int32_t *data, uint64_t *timesta
         return -1;
     raw = (tmp[0] << 8) | tmp[1];
     if (timestamp)
-        get_ms(timestamp);
+        *timestamp = usfs_get_us();
 
     data[0] = (int32_t)((35 + ((raw - (float)st->hw->temp_offset) / st->hw->temp_sens)) * 65536L);
     return 0;

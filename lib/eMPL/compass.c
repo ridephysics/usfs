@@ -152,7 +152,7 @@ int _ak89xx_setup_compass(struct mpu_state_s *st)
 /**
  *  @brief      Read raw compass data.
  *  @param[out] data        Raw data in hardware units.
- *  @param[out] timestamp   Timestamp in milliseconds. Null if not needed.
+ *  @param[out] timestamp   Timestamp in microseconds. Null if not needed.
  *  @return     0 if successful.
  */
 int mpu_get_compass_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp)
@@ -202,7 +202,7 @@ int mpu_get_compass_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timesta
     data[2] = ((int32_t)data[2] * st->chip_cfg.ak89xx.mag_sens_adj[2]) >> 8;
 
     if (timestamp)
-        get_ms(timestamp);
+        *timestamp = usfs_get_us();
     return 0;
 }
 
