@@ -4,8 +4,6 @@
 #include <crossi2c.h>
 #include <bmp280.h>
 
-#define M24512_PAGESZ 128
-
 struct usfs_bmp280 {
     struct crossi2c_bus *i2cbus;
     struct bmp280_dev bmp;
