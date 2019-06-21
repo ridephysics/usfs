@@ -224,8 +224,19 @@ struct mpu_state_s {
     const struct mpu_test_s *test;
 };
 
+struct mpu_cfg_dump {
+    uint8_t mputype;
+    uint8_t magtype;
+    uint8_t gyro_fsr;
+    uint8_t accel_fsr;
+    int16_t mag_sens_adj[3];
+} __attribute__((packed));
+
 /* Set up APIs */
-int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e magtype, struct crossi2c_bus *i2cbus);
+int mpu_create(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e magtype, struct crossi2c_bus *i2cbus);
+int mpu_create_nodev(struct mpu_state_s *st, struct mpu_cfg_dump *cfg);
+int mpu_init(struct mpu_state_s *st);
+void mpu_get_cfg(struct mpu_state_s *st, struct mpu_cfg_dump *cfg);
 int mpu_set_bypass(struct mpu_state_s *st, uint8_t bypass_on);
 
 /* Configuration APIs */
