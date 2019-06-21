@@ -224,22 +224,7 @@ int mpu_read_reg(struct mpu_state_s *st, uint8_t reg, void *data)
     return i2c_read(st, st->hw->addr, reg, 1, data);
 }
 
-/**
- *  @brief      Initialize hardware.
- *  Initial configuration:\n
- *  Gyro FSR: +/- 2000DPS\n
- *  Accel FSR +/- 2G\n
- *  DLPF: 42Hz\n
- *  FIFO rate: 50Hz\n
- *  Clock source: Gyro PLL\n
- *  FIFO: Disabled.\n
- *  Data ready interrupt: Disabled, active low, unlatched.
- *  @return     0 if successful.
- */
-int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e magtype, struct crossi2c_bus *i2cbus)
-{
-    uint8_t data[6];
-
+int mpu_create(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e magtype, struct crossi2c_bus *i2cbus) {
     memset(st, 0, sizeof(*st));
 
     st->mputype = mputype;
@@ -261,6 +246,41 @@ int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e ma
         return -1;
     }
 
+    return 0;
+}
+
+int mpu_create_nodev(struct mpu_state_s *st, struct mpu_cfg_dump *cfg) {
+    int rc;
+
+    rc = mpu_create(st, cfg->mputype, cfg->magtype, NULL);
+    if (rc) return rc;
+
+    st->chip_cfg.gyro_fsr = cfg->gyro_fsr;
+    st->chip_cfg.accel_fsr = cfg->accel_fsr;
+
+    st->chip_cfg.ak89xx.mag_sens_adj[0] = cfg->mag_sens_adj[0];
+    st->chip_cfg.ak89xx.mag_sens_adj[1] = cfg->mag_sens_adj[1];
+    st->chip_cfg.ak89xx.mag_sens_adj[2] = cfg->mag_sens_adj[2];
+
+    return 0;
+}
+
+/**
+ *  @brief      Initialize hardware.
+ *  Initial configuration:\n
+ *  Gyro FSR: +/- 2000DPS\n
+ *  Accel FSR +/- 2G\n
+ *  DLPF: 42Hz\n
+ *  FIFO rate: 50Hz\n
+ *  Clock source: Gyro PLL\n
+ *  FIFO: Disabled.\n
+ *  Data ready interrupt: Disabled, active low, unlatched.
+ *  @return     0 if successful.
+ */
+int mpu_init(struct mpu_state_s *st)
+{
+    uint8_t data[6];
+
     if (i2c_read(st, st->hw->addr, st->reg->who_am_i, 1, data))
         return -1;
 
@@ -280,7 +300,7 @@ int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e ma
     if (i2c_write(st, st->hw->addr, st->reg->pwr_mgmt_1, 1, data))
         return -1;
 
-    if (mputype == MPU_TYPE_MPU6500) {
+    if (st->mputype == MPU_TYPE_MPU6500) {
         /* MPU6500 shares 4kB of memory between the DMP and the FIFO. Since the
          * first 3kB are needed by the DMP, we'll use the last 1kB for the FIFO.
          */
@@ -297,7 +317,7 @@ int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e ma
     st->chip_cfg.sample_rate = 0xFFFF;
     st->chip_cfg.fifo_enable = 0xFF;
     st->chip_cfg.bypass_mode = 0xFF;
-    if (magtype != MAG_TYPE_NONE) {
+    if (st->magtype != MAG_TYPE_NONE) {
         st->chip_cfg.ak89xx.compass_sample_rate = 0xFFFF;
     }
     /* mpu_set_sensors always preserves this setting. */
@@ -323,7 +343,7 @@ int mpu_init(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e ma
     if (mpu_configure_fifo(st, 0))
         return -1;
 
-    if (magtype == MAG_TYPE_NONE) {
+    if (st->magtype == MAG_TYPE_NONE) {
         /* Already disabled by setup_compass. */
         if (mpu_set_bypass(st, 0))
             return -1;
