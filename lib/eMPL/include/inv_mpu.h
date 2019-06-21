@@ -224,6 +224,14 @@ struct mpu_state_s {
     const struct mpu_test_s *test;
 };
 
+struct mpu_cfg_dump {
+    uint8_t mputype;
+    uint8_t magtype;
+    uint8_t gyro_fsr;
+    uint8_t accel_fsr;
+    int16_t mag_sens_adj[3];
+} __attribute__((packed));
+
 /* Set up APIs */
 int mpu_create(struct mpu_state_s *st, enum mpu_type_e mputype, enum mag_type_e magtype, struct crossi2c_bus *i2cbus);
 int mpu_create_nodev(struct mpu_state_s *st, struct mpu_cfg_dump *cfg);
@@ -275,6 +283,12 @@ int mpu_get_gyro_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp)
 int mpu_get_accel_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp);
 int mpu_get_compass_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp);
 int mpu_get_temperature(struct mpu_state_s *st, int32_t *data, uint64_t *timestamp);
+
+#define MPU_RAWSZ (3*2 + 1*2 + 3*2 + 4*2)
+void mpu_get_cfg(struct mpu_state_s *st, struct mpu_cfg_dump *cfg);
+int mpu_get_all_data(struct mpu_state_s *st, uint8_t data[MPU_RAWSZ], uint64_t *timestamp);
+uint8_t mpu_parse_all_data(struct mpu_state_s *st, const uint8_t data[MPU_RAWSZ],
+    int16_t *accel, int16_t *gyro, int16_t *compass);
 
 int mpu_get_int_status(struct mpu_state_s *st, int16_t *status);
 int mpu_read_fifo(struct mpu_state_s *st, int16_t *gyro, int16_t *accel, uint64_t *timestamp,

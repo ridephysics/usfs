@@ -531,6 +531,79 @@ int mpu_get_temperature(struct mpu_state_s *st, int32_t *data, uint64_t *timesta
     return 0;
 }
 
+void mpu_get_cfg(struct mpu_state_s *st, struct mpu_cfg_dump *cfg) {
+    cfg->mputype = st->mputype;
+    cfg->magtype = st->magtype;
+    cfg->gyro_fsr = st->chip_cfg.gyro_fsr;
+    cfg->accel_fsr = st->chip_cfg.accel_fsr;
+    cfg->mag_sens_adj[0] = st->chip_cfg.ak89xx.mag_sens_adj[0];
+    cfg->mag_sens_adj[1] = st->chip_cfg.ak89xx.mag_sens_adj[1];
+    cfg->mag_sens_adj[2] = st->chip_cfg.ak89xx.mag_sens_adj[2];
+}
+
+int mpu_get_all_data(struct mpu_state_s *st, uint8_t data[MPU_RAWSZ], uint64_t *timestamp) {
+    if (st->mag_bypass) 
+        return -2;
+
+    if (i2c_read(st, st->hw->addr, st->reg->raw_accel, MPU_RAWSZ, data))
+        return -1;
+
+    if (timestamp)
+        *timestamp = usfs_get_us();
+
+    return 0;
+}
+
+uint8_t mpu_parse_all_data(struct mpu_state_s *st, const uint8_t data[MPU_RAWSZ],
+    int16_t *accel, int16_t *gyro, int16_t *compass)
+{
+    uint8_t ret = 0;
+    uint8_t compass_ok = 1;
+
+    accel[0] = (data[0] << 8) | data[1];
+    accel[1] = (data[2] << 8) | data[3];
+    accel[2] = (data[4] << 8) | data[5];
+    data += 6;
+    ret |= INV_XYZ_ACCEL;
+
+    data += 2;
+
+    gyro[0] = (data[0] << 8) | data[1];
+    gyro[1] = (data[2] << 8) | data[3];
+    gyro[2] = (data[4] << 8) | data[5];
+    data += 6;
+    ret |= INV_XYZ_GYRO;
+
+    if (st->magtype == MAG_TYPE_AK8975) {
+        /* AK8975 doesn't have the overrun error bit. */
+        if (!(data[0] & AKM_DATA_READY))
+            compass_ok = 0;
+        if ((data[7] & AKM_OVERFLOW) || (data[7] & AKM_DATA_ERROR))
+            compass_ok = 0;
+    }
+    else if (st->magtype == MAG_TYPE_AK8963) {
+        /* AK8963 doesn't have the data read error bit. */
+        if (!(data[0] & AKM_DATA_READY) || (data[0] & AKM_DATA_OVERRUN))
+            compass_ok = 0;
+        if (data[7] & AKM_OVERFLOW)
+            compass_ok = 0;
+    }
+
+    if (compass_ok) {
+        compass[0] = (data[2] << 8) | data[1];
+        compass[1] = (data[4] << 8) | data[3];
+        compass[2] = (data[6] << 8) | data[5];
+
+        compass[0] = ((int32_t)compass[0] * st->chip_cfg.ak89xx.mag_sens_adj[0]) >> 8;
+        compass[1] = ((int32_t)compass[1] * st->chip_cfg.ak89xx.mag_sens_adj[1]) >> 8;
+        compass[2] = ((int32_t)compass[2] * st->chip_cfg.ak89xx.mag_sens_adj[2]) >> 8;
+
+        ret |= INV_XYZ_COMPASS;
+    }
+
+    return ret;
+}
+
 /**
  *  @brief      Get the gyro full-scale range.
  *  @param[out] fsr Current full-scale range.
