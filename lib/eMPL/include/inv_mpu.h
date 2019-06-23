@@ -285,6 +285,13 @@ int mpu_get_accel_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp
 int mpu_get_compass_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp);
 int mpu_get_temperature(struct mpu_state_s *st, int32_t *data, uint64_t *timestamp);
 
+/* accel + temp + gyro + mag */
+#define MPU_RAWSZ (3*2 + 1*2 + 3*2 + 4*2)
+
+int mpu_get_all_data(struct mpu_state_s *st, uint8_t data[MPU_RAWSZ], uint64_t *timestamp);
+uint8_t mpu_parse_all_data(struct mpu_state_s *st, const uint8_t data[MPU_RAWSZ],
+    int16_t *accel, int16_t *gyro, int16_t *compass);
+
 int mpu_get_int_status(struct mpu_state_s *st, int16_t *status);
 int mpu_read_fifo(struct mpu_state_s *st, int16_t *gyro, int16_t *accel, uint64_t *timestamp,
     uint8_t *sensors, uint8_t *more);

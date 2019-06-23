@@ -175,5 +175,6 @@ enum lp_accel_rate_e {
 
 int _mpu_set_int_enable(struct mpu_state_s *st, uint8_t enable);
 int _ak89xx_setup_compass(struct mpu_state_s *st);
+int _mpu_compass_parse_rawdata(struct mpu_state_s *st, const uint8_t tmp[9], int16_t *data);
 
 #endif /* INV_MPU_P_H */

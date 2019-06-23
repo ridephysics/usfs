@@ -149,35 +149,7 @@ int _ak89xx_setup_compass(struct mpu_state_s *st)
     return 0;
 }
 
-/**
- *  @brief      Read raw compass data.
- *  @param[out] data        Raw data in hardware units.
- *  @param[out] timestamp   Timestamp in microseconds. Null if not needed.
- *  @return     0 if successful.
- */
-int mpu_get_compass_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp)
-{
-    uint8_t tmp[9];
-
-    if (st->magtype == MAG_TYPE_NONE) {
-        return -1;
-    }
-
-    if (!(st->chip_cfg.sensors & INV_XYZ_COMPASS))
-        return -1;
-
-    if (st->mag_bypass) {
-        if (i2c_read(st, st->chip_cfg.ak89xx.compass_addr, AKM_REG_ST1, 8, tmp))
-            return -1;
-        tmp[8] = AKM_SINGLE_MEASUREMENT;
-        if (i2c_write(st, st->chip_cfg.ak89xx.compass_addr, AKM_REG_CNTL, 1, tmp+8))
-            return -1;
-    }
-    else {
-        if (i2c_read(st, st->hw->addr, st->reg->ak89xx.raw_compass, 8, tmp))
-            return -1;
-    }
-
+int _mpu_compass_parse_rawdata(struct mpu_state_s *st, const uint8_t tmp[9], int16_t *data) {
     if (st->magtype == MAG_TYPE_AK8975) {
         /* AK8975 doesn't have the overrun error bit. */
         if (!(tmp[0] & AKM_DATA_READY))
@@ -200,6 +172,43 @@ int mpu_get_compass_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timesta
     data[0] = ((int32_t)data[0] * st->chip_cfg.ak89xx.mag_sens_adj[0]) >> 8;
     data[1] = ((int32_t)data[1] * st->chip_cfg.ak89xx.mag_sens_adj[1]) >> 8;
     data[2] = ((int32_t)data[2] * st->chip_cfg.ak89xx.mag_sens_adj[2]) >> 8;
+
+    return 0;
+}
+
+/**
+ *  @brief      Read raw compass data.
+ *  @param[out] data        Raw data in hardware units.
+ *  @param[out] timestamp   Timestamp in microseconds. Null if not needed.
+ *  @return     0 if successful.
+ */
+int mpu_get_compass_reg(struct mpu_state_s *st, int16_t *data, uint64_t *timestamp)
+{
+    int rc;
+    uint8_t tmp[9];
+
+    if (st->magtype == MAG_TYPE_NONE) {
+        return -1;
+    }
+
+    if (!(st->chip_cfg.sensors & INV_XYZ_COMPASS))
+        return -1;
+
+    if (st->mag_bypass) {
+        if (i2c_read(st, st->chip_cfg.ak89xx.compass_addr, AKM_REG_ST1, 8, tmp))
+            return -1;
+        tmp[8] = AKM_SINGLE_MEASUREMENT;
+        if (i2c_write(st, st->chip_cfg.ak89xx.compass_addr, AKM_REG_CNTL, 1, tmp+8))
+            return -1;
+    }
+    else {
+        if (i2c_read(st, st->hw->addr, st->reg->ak89xx.raw_compass, 8, tmp))
+            return -1;
+    }
+
+    rc = _mpu_compass_parse_rawdata(st, tmp, data);
+    if (rc)
+        return rc;
 
     if (timestamp)
         *timestamp = usfs_get_us();

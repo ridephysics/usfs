@@ -541,6 +541,50 @@ int mpu_get_temperature(struct mpu_state_s *st, int32_t *data, uint64_t *timesta
     return 0;
 }
 
+int mpu_get_all_data(struct mpu_state_s *st, uint8_t data[MPU_RAWSZ], uint64_t *timestamp) {
+    // TODO: this mode is not yet supported
+    if (st->mag_bypass)
+        return -2;
+
+    if (i2c_read(st, st->hw->addr, st->reg->raw_accel, MPU_RAWSZ, data))
+        return -1;
+
+    if (timestamp)
+        *timestamp = usfs_get_us();
+
+    return 0;
+}
+
+uint8_t mpu_parse_all_data(struct mpu_state_s *st, const uint8_t data[MPU_RAWSZ],
+    int16_t *accel, int16_t *gyro, int16_t *compass)
+{
+    uint8_t ret = 0;
+
+    /* accel */
+    accel[0] = (data[0] << 8) | data[1];
+    accel[1] = (data[2] << 8) | data[3];
+    accel[2] = (data[4] << 8) | data[5];
+    data += 6;
+    ret |= INV_XYZ_ACCEL;
+
+    /* temp */
+    data += 2;
+
+    /* gyro */
+    gyro[0] = (data[0] << 8) | data[1];
+    gyro[1] = (data[2] << 8) | data[3];
+    gyro[2] = (data[4] << 8) | data[5];
+    data += 6;
+    ret |= INV_XYZ_GYRO;
+
+    /* compass */
+    if (!_mpu_compass_parse_rawdata(st, data, compass)) {
+        ret |= INV_XYZ_COMPASS;
+    }
+
+    return ret;
+}
+
 /**
  *  @brief      Get the gyro full-scale range.
  *  @param[out] fsr Current full-scale range.
