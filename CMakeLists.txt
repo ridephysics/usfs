@@ -34,9 +34,6 @@ else()
 cmake_minimum_required(VERSION 2.8)
 project(usfs)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(BUILD_SHARED_LIBS ON)
-
 add_compile_options(
     -Wall
     -Wextra
@@ -46,7 +43,7 @@ add_compile_options(
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wstrict-prototypes -Wmissing-prototypes")
 
-add_library(usfs SHARED
+add_library(usfs
     ${USFS_SRCS_COMMON}
 )
 target_include_directories(usfs PUBLIC
