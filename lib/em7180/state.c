@@ -68,7 +68,7 @@ int em7180_passthrough_exit(struct em7180 *dev) {
     }
 
     if (!(ptstatus & 0x01)) {
-        CROSSLOGD("we're in passthrough mode already");
+        CROSSLOGD("we're not in passthrough mode");
         return 0;
     }
 
