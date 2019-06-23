@@ -106,6 +106,7 @@ enum em7180_param {
     EM7180_PARAM_FS_GYRO = 0x4b,
 };
 
+#define EM7180_RAWDATA_SZ 50
 #define EM7180_RAWDATA_OFF_Q EM7180_REG_QX_0
 #define EM7180_RAWDATA_OFF_M EM7180_REG_MX_0
 #define EM7180_RAWDATA_OFF_A EM7180_REG_AX_0
@@ -160,7 +161,7 @@ int em7180_get_data_magnetometer(struct em7180 *dev, int16_t mag[3], uint16_t *p
 int em7180_get_data_quaternion(struct em7180 *dev, uint32_t quat[4], uint16_t *ptime);
 int em7180_get_data_barometer(struct em7180 *dev, int16_t *baro, uint16_t *ptime);
 int em7180_get_data_temperature(struct em7180 *dev, int16_t *temp, uint16_t *ptime);
-int em7180_get_data_all_raw(struct em7180 *dev, uint8_t raw[50]);
+int em7180_get_data_all_raw(struct em7180 *dev, uint8_t raw[EM7180_RAWDATA_SZ]);
 
 // debug
 void em7180_print_feature_flags(uint8_t flags);

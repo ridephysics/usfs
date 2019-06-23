@@ -147,7 +147,7 @@ int em7180_get_data_temperature(struct em7180 *dev, int16_t *temp, uint16_t *pti
     return 0;
 }
 
-int em7180_get_data_all_raw(struct em7180 *dev, uint8_t raw[50]) {
+int em7180_get_data_all_raw(struct em7180 *dev, uint8_t raw[EM7180_RAWDATA_SZ]) {
     int rc;
 
     rc = em7180_read(dev, EM7180_REG_QX_0, raw, 50);
