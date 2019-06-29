@@ -287,6 +287,9 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
     magfp[1] = tmp;
     magfp[2] = -magfp[2];
 
+    // pressure: Pa -> hPa
+    pressure /= 100.0;
+
     if (fwrite(&mpu_time, sizeof(mpu_time), 1, stdout)!= 1) {
         return -1;
     }
