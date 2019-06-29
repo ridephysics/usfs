@@ -6,6 +6,7 @@
 #include <usfs.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <math.h>
 
 #define CROSSLOG_TAG "reader"
 #include <crosslog.h>
@@ -130,12 +131,147 @@ static void parse_args(int argc, char **argv) {
     }
 }
 
-#if 0
-static int write_sentral(void) {
-    // TODO
-    return -1;
+static int write_sentral(uint64_t t, uint8_t alg_status, uint8_t event_status, uint8_t data_raw[EM7180_RAWDATA_SZ]) {
+    size_t i;
+    double tmp;
+
+    int16_t acc_raw[3];
+    int16_t gyro_raw[3];
+    int16_t mag_raw[3];
+    int16_t temp_raw;
+    int16_t baro_raw;
+    uint32_t quat_raw[4];
+
+    double accelfp[3];
+    double gyrofp[3];
+    double magfp[3];
+    double temperature;
+    double pressure;
+    double quat[4];
+
+    if (arg_outfmt == OUTFORMAT_RAW) {
+        // write time
+        if (fwrite(&t, sizeof(t), 1, stdout) != 1) {
+            CROSSLOGE("can't write time");
+            return -1;
+        }
+
+        // write alg status
+        if (fwrite(&alg_status, sizeof(alg_status), 1, stdout) != 1) {
+            CROSSLOGE("can't algorithm status");
+            return -1;
+        }
+
+        // write event status
+        if (fwrite(&event_status, sizeof(event_status), 1, stdout) != 1) {
+            CROSSLOGE("can't event status");
+            return -1;
+        }
+
+        // write sensor data
+        if (fwrite(data_raw, EM7180_RAWDATA_SZ, 1, stdout) != 1) {
+            CROSSLOGE("can't write data");
+            return -1;
+        }
+
+        return 0;
+    }
+
+    if (arg_outfmt != OUTFORMAT_PROCESSED) {
+        return -1;
+    }
+
+    em7180_parse_data_accelerometer(&data_raw[EM7180_RAWDATA_OFF_A], acc_raw, NULL);
+    em7180_parse_data_gyroscope(&data_raw[EM7180_RAWDATA_OFF_G], gyro_raw, NULL);
+    em7180_parse_data_magnetometer(&data_raw[EM7180_RAWDATA_OFF_M], mag_raw, NULL);
+    em7180_parse_data_temperature(&data_raw[EM7180_RAWDATA_OFF_T], &temp_raw, NULL);
+    em7180_parse_data_barometer(&data_raw[EM7180_RAWDATA_OFF_B], &baro_raw, NULL);
+    em7180_parse_data_quaternion(&data_raw[EM7180_RAWDATA_OFF_Q], quat_raw, NULL);
+
+    float lsb_acc = 32.0f / 65536.0f;
+    float lsb_gyro = 10000.0f / 65536.0f;
+    float lsb_mag = 2000.0f / 65536.0f;
+
+    for (i=0; i < 3; i++) {
+        accelfp[i] = acc_raw[i] * lsb_acc;
+        gyrofp[i] = gyro_raw[i] * lsb_gyro;
+        magfp[i] = mag_raw[i] * lsb_mag;
+    }
+
+    for (i=0; i < 4; i++) {
+        float f;
+        memcpy(&f, &quat_raw[i], sizeof(float));
+        quat[i] = f;
+    }
+
+    temperature = temp_raw * 0.01f;
+    pressure = baro_raw * 0.01f + 1013.25f;
+
+    // accel: inverted(NED) -> ENU
+    tmp = accelfp[0];
+    accelfp[0] = -accelfp[1];
+    accelfp[1] = -tmp;
+
+    // gyro: NED -> ENU
+    tmp = gyrofp[0];
+    gyrofp[0] = gyrofp[1];
+    gyrofp[1] = tmp;
+    gyrofp[2] = -gyrofp[2];
+
+    // mag: NED -> ENU
+    tmp = magfp[0];
+    magfp[0] = magfp[1];
+    magfp[1] = tmp;
+    magfp[2] = -magfp[2];
+
+    // quat: xyzw -> wxyz
+    tmp = quat[0];
+    quat[0] = quat[3];
+    quat[3] = quat[2];
+    quat[2] = quat[1];
+    quat[1] = tmp;
+
+    // quat: NED -> ENU
+    tmp = quat[1];
+    quat[0] = quat[0];
+    quat[1] = quat[2];
+    quat[2] = tmp;
+    quat[3] = -quat[3];
+
+    if (fwrite(&t, sizeof(t), 1, stdout)!= 1) {
+        return -1;
+    }
+
+    if (fwrite(accelfp, sizeof(accelfp), 1, stdout)!= 1) {
+        return -1;
+    }
+
+    if (fwrite(gyrofp, sizeof(gyrofp), 1, stdout)!= 1) {
+        return -1;
+    }
+
+    if (fwrite(magfp, sizeof(magfp), 1, stdout)!= 1) {
+        return -1;
+    }
+
+    if (fwrite(&t, sizeof(t), 1, stdout)!= 1) {
+        return -1;
+    }
+
+    if (fwrite(&temperature, sizeof(temperature), 1, stdout)!= 1) {
+        return -1;
+    }
+
+    if (fwrite(&pressure, sizeof(pressure), 1, stdout)!= 1) {
+        return -1;
+    }
+
+    if (fwrite(quat, sizeof(quat), 1, stdout)!= 1) {
+        return -1;
+    }
+
+    return 0;
 }
-#endif
 
 #define BMP_RAWSZ (6)
 #define MPU_SAMPLESZ (MPU_RAWSZ + sizeof(uint64_t))
@@ -441,8 +577,74 @@ static int handle_i2c_sentral_pt(void) {
 }
 
 static int handle_i2c_sentral(void) {
-    // TODO
-    return -1;
+    int rc;
+
+    rc = em7180_init(&em7180);
+    if (rc) {
+        CROSSLOGE("can't init em7180");
+        return -1;
+    }
+
+    while (keep_running) {
+        uint8_t event_status;
+        uint8_t alg_status;
+        uint8_t sensor_status;
+        uint8_t error_reg;
+        uint8_t data_raw[EM7180_RAWDATA_SZ];
+
+        rc = em7180_get_event_status(&em7180, &event_status);
+        if (rc) {
+            CROSSLOGE("Unable to get event status (err %d)", rc);
+            continue;
+        }
+
+        // don't read any data if the error flag is set
+        if (event_status & EM7180_EVENT_ERROR) {
+            rc = em7180_get_error_register(&em7180, &error_reg);
+            if (rc) {
+                CROSSLOGE("Unable to get error register (err %d)", rc);
+                continue;
+            }
+
+            em7180_print_error((enum em7180_error)error_reg);
+            continue;
+        }
+
+        // update the current algorithm status
+        rc = em7180_get_algorithm_status(&em7180, &alg_status);
+        if (rc) {
+            CROSSLOGE("Unable to get algorithm status (err %d)", rc);
+            continue;
+        }
+
+        // print any sensor communication errors
+        rc = em7180_get_sensor_status(&em7180, &sensor_status);
+        if (rc) {
+            CROSSLOGE("Unable to get sensor status (err %d)", rc);
+            continue;
+        }
+        if (sensor_status) {
+            em7180_print_sensor_status(sensor_status);
+        }
+
+        // if there are no events, don't do anything
+        if (!event_status) {
+            continue;
+        }
+
+        // get all sensor data
+        rc = em7180_get_data_all_raw(&em7180, data_raw);
+        if (rc) {
+            CROSSLOGE("Unable to get raw data (err %d)", rc);
+            continue;
+        }
+
+        uint64_t now = usfs_get_us();
+
+        write_sentral(now, alg_status, event_status, data_raw);
+    }
+
+    return 0;
 }
 
 static int handle_i2c(void) {
@@ -509,35 +711,23 @@ static ssize_t read_all(int fd, void *buf, size_t count) {
     return ret;
 }
 
-static int handle_file(void) {
-    int ret = -1;
+static int handle_file_sentral_pt(int fd) {
     int rc;
-    int fd;
     ssize_t nbytes;
     struct mpu_cfg_dump cfg;
     struct bmp280_calib_param calib_param;
     uint8_t data[TOTAL_SAMPLESZ];
 
-    if (!strcmp(arg_src, "-"))
-        fd = 0;
-    else
-        fd = open(arg_src, O_RDONLY, 0);
-
-    if (fd < 0) {
-        CROSSLOG_ERRNO("can't open %s", arg_src);
-        return -1;
-    }
-
     nbytes = read_all(fd, &cfg, sizeof(cfg));
     if (nbytes != sizeof(cfg)) {
         CROSSLOG_ERRNO("can't read mpu config from file. nbytes=%zd", nbytes);
-        goto out_close;
+        return -1;
     }
 
     nbytes = read_all(fd, &calib_param, sizeof(calib_param));
     if (nbytes != sizeof(calib_param)) {
         CROSSLOG_ERRNO("can't read bmp calib param from file. nbytes=%zd", nbytes);
-        goto out_close;
+        return -1;
     }
 
     rc = mpu_create_nodev(&mpu9250, &cfg);
@@ -552,12 +742,11 @@ static int handle_file(void) {
         return -1;
     }
 
-    // TODO: handle sentral mode
     for (;;) {
         nbytes = read_all(fd, data, TOTAL_SAMPLESZ);
         if (nbytes < 0) {
             CROSSLOG_ERRNO("read_all");
-            goto out_close;
+            return -1;
         }
 
         if (nbytes == 0) {
@@ -566,17 +755,77 @@ static int handle_file(void) {
 
         if (nbytes != TOTAL_SAMPLESZ) {
             CROSSLOGE("short read");
-            goto out_close;
+            return -1;
         }
 
         write_sentral_pt(&calib_param, data);
     }
 
-    ret = 0;
+    return 0;
+}
 
-out_close:
+static int handle_file_sentral(int fd) {
+    ssize_t nbytes;
+    uint8_t data[sizeof(uint64_t) + 1 + 1 + EM7180_RAWDATA_SZ];
+
+    for (;;) {
+        nbytes = read_all(fd, data, sizeof(data));
+        if (nbytes < 0) {
+            CROSSLOG_ERRNO("read_all");
+            return -1;
+        }
+
+        if (nbytes == 0) {
+            break;
+        }
+
+        if (nbytes != sizeof(data)) {
+            CROSSLOGE("short read");
+            return -1;
+        }
+
+        uint64_t t = *((uint64_t*)data);
+        uint8_t alg_status = data[sizeof(uint64_t)];
+        uint8_t event_status = data[sizeof(uint64_t) + 1];
+        uint8_t *raw_data = &data[sizeof(uint64_t) + 1 + 1];
+
+        write_sentral(t, alg_status, event_status, raw_data);
+    }
+
+    return 0;
+}
+
+static int handle_file(void) {
+    int ret;
+    int fd;
+
+    if (!strcmp(arg_src, "-"))
+        fd = 0;
+    else
+        fd = open(arg_src, O_RDONLY, 0);
+
+    if (fd < 0) {
+        CROSSLOG_ERRNO("can't open %s", arg_src);
+        return -1;
+    }
+
+    switch (arg_infmt) {
+    case INFORMAT_SENTRAL:
+        ret = handle_file_sentral(fd);
+        break;
+
+    case INFORMAT_SENTRAL_PT:
+        ret = handle_file_sentral_pt(fd);
+        break;
+
+    default:
+        CROSSLOGE("invalid infmt: %d", arg_infmt);
+        ret = -1;
+    }
+
     if (fd != 0)
         close(fd);
+
     return ret;
 }
 
