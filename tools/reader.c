@@ -318,7 +318,7 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
         return -1;
     }
 
-    if (fwrite(&quat, sizeof(quat), 1, stdout)!= 1) {
+    if (fwrite(quat, sizeof(quat), 1, stdout)!= 1) {
         return -1;
     }
 
