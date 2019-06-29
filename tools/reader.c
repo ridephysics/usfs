@@ -266,10 +266,6 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
         return -1;
     }
 
-    if (fwrite(&mpu_time, sizeof(mpu_time), 1, stdout)!= 1) {
-        return -1;
-    }
-
     // TODO: calibrate
     for (i = 0; i < 3; i++) {
         accelfp[i] = ((double)accel[i]) / ((double)accel_sens);
@@ -290,6 +286,10 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
     magfp[0] = magfp[1];
     magfp[1] = tmp;
     magfp[2] = -magfp[2];
+
+    if (fwrite(&mpu_time, sizeof(mpu_time), 1, stdout)!= 1) {
+        return -1;
+    }
 
     if (fwrite(accelfp, sizeof(accelfp), 1, stdout)!= 1) {
         return -1;
