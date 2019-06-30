@@ -273,11 +273,6 @@ static int write_sentral(uint64_t t, uint8_t alg_status, uint8_t event_status, u
     return 0;
 }
 
-#define BMP_RAWSZ (6)
-#define MPU_SAMPLESZ (MPU_RAWSZ + sizeof(uint64_t))
-#define BMP_SAMPLESZ (BMP_RAWSZ + sizeof(uint64_t))
-#define TOTAL_SAMPLESZ (MPU_SAMPLESZ + BMP_SAMPLESZ)
-
 static int write_sentral_pt_hdr(const struct bmp280_calib_param *calib_param) {
     struct mpu_cfg_dump cfg;
 
@@ -305,7 +300,7 @@ static int write_sentral_pt_hdr(const struct bmp280_calib_param *calib_param) {
     return 0;
 }
 
-static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_t data[TOTAL_SAMPLESZ]) {
+static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_t data[USFS_TOTAL_SAMPLESZ]) {
     const uint8_t *mpu_data = &data[0];
     uint64_t mpu_time = *((uint64_t*)&data[MPU_RAWSZ]);
     const uint8_t *bmp_data = &data[MPU_SAMPLESZ];
@@ -338,7 +333,7 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
     double pressure = 0;
 
     if (arg_outfmt == OUTFORMAT_RAW) {
-        if (fwrite(data, TOTAL_SAMPLESZ, 1, stdout)!= 1) {
+        if (fwrite(data, USFS_TOTAL_SAMPLESZ, 1, stdout)!= 1) {
             CROSSLOGE("can't write data to stdout");
             return -1;
         }
@@ -465,7 +460,7 @@ static int handle_i2c_sentral_pt(void) {
     int rc;
     int8_t brc;
     struct bmp280_config conf;
-    uint8_t data[TOTAL_SAMPLESZ];
+    uint8_t data[USFS_TOTAL_SAMPLESZ];
 
     rc = usfs_bmp280_create(&bmp280, &i2cbus);
     if (rc) {
@@ -716,7 +711,7 @@ static int handle_file_sentral_pt(int fd) {
     ssize_t nbytes;
     struct mpu_cfg_dump cfg;
     struct bmp280_calib_param calib_param;
-    uint8_t data[TOTAL_SAMPLESZ];
+    uint8_t data[USFS_TOTAL_SAMPLESZ];
 
     nbytes = read_all(fd, &cfg, sizeof(cfg));
     if (nbytes != sizeof(cfg)) {
@@ -743,7 +738,7 @@ static int handle_file_sentral_pt(int fd) {
     }
 
     for (;;) {
-        nbytes = read_all(fd, data, TOTAL_SAMPLESZ);
+        nbytes = read_all(fd, data, USFS_TOTAL_SAMPLESZ);
         if (nbytes < 0) {
             CROSSLOG_ERRNO("read_all");
             return -1;
@@ -753,7 +748,7 @@ static int handle_file_sentral_pt(int fd) {
             break;
         }
 
-        if (nbytes != TOTAL_SAMPLESZ) {
+        if (nbytes != USFS_TOTAL_SAMPLESZ) {
             CROSSLOGE("short read");
             return -1;
         }

@@ -37,4 +37,9 @@
     #error "unsupported platform"
 #endif
 
+#define BMP_RAWSZ (6)
+#define MPU_SAMPLESZ (MPU_RAWSZ + sizeof(uint64_t))
+#define BMP_SAMPLESZ (BMP_RAWSZ + sizeof(uint64_t))
+#define USFS_TOTAL_SAMPLESZ (MPU_SAMPLESZ + BMP_SAMPLESZ)
+
 #endif /* USFS_H */
