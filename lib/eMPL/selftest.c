@@ -439,7 +439,7 @@ static int accel_6500_self_test(struct mpu_state_s *st, int32_t *bias_regular, i
         if(debug)
             log_i("Accel:CRITERIA C: bias less than %7.4f", accel_offset_max/1.f);
         for (i = 0; i < 3; i++) {
-            if(fabs(bias_regular[i]) > accel_offset_max) {
+            if(labs(bias_regular[i]) > accel_offset_max) {
                 if(debug)
                     log_i("FAILED: Accel axis:%d = %"PRId32" > 500mg", i, bias_regular[i]);
                 result |= 1 << i;    //Error condition
@@ -533,7 +533,7 @@ static int gyro_6500_self_test(struct mpu_state_s *st, int32_t *bias_regular, in
         if(debug)
             log_i("Gyro:CRITERIA C: bias less than %7.4f", gyro_offset_max/1.f);
         for (i = 0; i < 3; i++) {
-            if(fabs(bias_regular[i]) > gyro_offset_max) {
+            if(labs(bias_regular[i]) > gyro_offset_max) {
                 if(debug)
                     log_i("FAILED: Gyro axis:%d = %"PRId32" > 20dps", i, bias_regular[i]);
                 result |= 1 << i;    //Error condition
