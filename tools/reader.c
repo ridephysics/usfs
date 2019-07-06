@@ -27,6 +27,12 @@ static enum informat arg_infmt = INFORMAT_INVALID;
 static enum outformat arg_outfmt = OUTFORMAT_INVALID;
 static const char *arg_src = NULL;
 static bool arg_src_isi2c = false;
+static double cal_mag_center[3] = {0, 0, 0};
+static double cal_mag_tr[3][3] = {
+    {1, 0, 0},
+    {0, 1, 0},
+    {0, 0, 1},
+};
 
 static volatile bool keep_running = true;
 static struct crossi2c_bus i2cbus;
@@ -59,6 +65,73 @@ static bool str_startswith(const char *pre, const char *str)
     return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
 }
 
+static ssize_t read_all(int fd, void *buf, size_t count) {
+    ssize_t ret = 0;
+    ssize_t nbytes;
+
+    while (count) {
+        nbytes = read(fd, buf, count);
+        if (nbytes < 0) {
+            if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+                continue;
+
+            return -1;
+        }
+
+        if (nbytes == 0) {
+            return ret;
+        }
+
+        buf += nbytes;
+        count -= nbytes;
+        ret += nbytes;
+    }
+
+    return ret;
+}
+
+static int load_cal_mag(const char *path) {
+    int ret = -1;
+    int fd;
+    ssize_t nbytes;
+    double tmp_cal_mag_center[3];
+    double tmp_cal_mag_tr[3][3];
+
+    fd = open(path, O_RDONLY, 0);
+    if (fd < 0) {
+        CROSSLOG_ERRNO("open");
+        return -1;
+    }
+
+    nbytes = read_all(fd, tmp_cal_mag_center, sizeof(tmp_cal_mag_center));
+    if (nbytes != sizeof(tmp_cal_mag_center)) {
+        CROSSLOG_ERRNO("read_all");
+        goto out_close;
+    }
+
+    nbytes = read_all(fd, tmp_cal_mag_tr, sizeof(tmp_cal_mag_tr));
+    if (nbytes != sizeof(tmp_cal_mag_tr)) {
+        CROSSLOG_ERRNO("read_all");
+        goto out_close;
+    }
+
+    memcpy(cal_mag_center, tmp_cal_mag_center, sizeof(cal_mag_center));
+    memcpy(cal_mag_tr, tmp_cal_mag_tr, sizeof(cal_mag_tr));
+
+    CROSSLOGI("center = [%f, %f, %f]", cal_mag_center[0], cal_mag_center[1], cal_mag_center[2]);
+    CROSSLOGI("TR = [\n\t[%f, %f, %f],\n\t[%f, %f, %f],\n\t[%f, %f, %f]\n]",
+        cal_mag_tr[0][0], cal_mag_tr[0][1], cal_mag_tr[0][2],
+        cal_mag_tr[1][0], cal_mag_tr[1][1], cal_mag_tr[1][2],
+        cal_mag_tr[2][0], cal_mag_tr[2][1], cal_mag_tr[2][2]
+    );
+
+    ret = 0;
+
+out_close:
+    close(fd);
+    return ret;
+}
+
 static void parse_args(int argc, char **argv) {
     int c;
 
@@ -67,6 +140,7 @@ static void parse_args(int argc, char **argv) {
         static struct option long_options[] = {
             {"infmt",   required_argument, 0, 0 },
             {"outfmt",  required_argument, 0, 0 },
+            {"cal_mag",  required_argument, 0, 0 },
             {0,         0,                 0, 0 }
         };
 
@@ -89,6 +163,12 @@ static void parse_args(int argc, char **argv) {
                 arg_outfmt = str2outformat(optarg);
                 if (arg_outfmt == OUTFORMAT_INVALID) {
                     fprintf(stderr, "invalid infmt: %s\n", optarg);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if (!strcmp(name, "cal_mag")) {
+                if (load_cal_mag(optarg)) {
+                    fprintf(stderr, "can't load magnetometer calibration from %s\n", optarg);
                     exit(EXIT_FAILURE);
                 }
             }
@@ -407,7 +487,6 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
         gyrofp[i] = ((double)gyro[i]) / ((double)gyro_sens);
     }
 
-    // TODO: calibrate
     for (i = 0; i < 3; i++) {
         magfp[i] = ((double)mag[i]) / (32768.0 / ((double)mag_fsr));
     }
@@ -420,6 +499,22 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
 
     // pressure: Pa -> hPa
     pressure /= 100.0;
+
+    // calibrate: mag center
+    for (i = 0; i < 3; i++) {
+        magfp[i] -= cal_mag_center[i];
+    }
+
+    // calibrate: mag matrix
+    {
+        double mx = magfp[0];
+        double my = magfp[1];
+        double mz = magfp[2];
+
+        for (i = 0; i < 3; i++) {
+            magfp[i] = cal_mag_tr[i][0] * mx + cal_mag_tr[i][1] * my + cal_mag_tr[i][2] * mz;
+        }
+    }
 
     if (fwrite(&mpu_time, sizeof(mpu_time), 1, stdout)!= 1) {
         return -1;
@@ -678,31 +773,6 @@ out_i2cbus_destroy:
         CROSSLOGW("can't destroy i2cbus");
     }
 out:
-    return ret;
-}
-
-static ssize_t read_all(int fd, void *buf, size_t count) {
-    ssize_t ret = 0;
-    ssize_t nbytes;
-
-    while (count) {
-        nbytes = read(fd, buf, count);
-        if (nbytes < 0) {
-            if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
-                continue;
-
-            return -1;
-        }
-
-        if (nbytes == 0) {
-            return ret;
-        }
-
-        buf += nbytes;
-        count -= nbytes;
-        ret += nbytes;
-    }
-
     return ret;
 }
 
