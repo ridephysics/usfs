@@ -30,7 +30,7 @@ static int get_6050_accel_prod_shift(struct mpu_state_s *st, float *st_shift)
     return 0;
 }
 
-static int accel_6050_self_test(struct mpu_state_s *st, int32_t *bias_regular, int32_t *bias_st, int debug)
+static int accel_6050_self_test(struct mpu_state_s *st, const int32_t *bias_regular, const int32_t *bias_st, int debug)
 {
     int jj, result = 0;
     float st_shift[3], st_shift_cust, st_shift_var;
@@ -74,7 +74,7 @@ static int accel_6050_self_test(struct mpu_state_s *st, int32_t *bias_regular, i
     return result;
 }
 
-static int gyro_6050_self_test(struct mpu_state_s *st, int32_t *bias_regular, int32_t *bias_st, int debug)
+static int gyro_6050_self_test(struct mpu_state_s *st, const int32_t *bias_regular, const int32_t *bias_st, int debug)
 {
     int jj, result = 0;
     uint8_t tmp[3];
@@ -360,7 +360,7 @@ static const uint16_t mpu_6500_st_tb[256] = {
     28538,28823,29112,29403,29697,29994,30294,30597,
     30903,31212,31524,31839,32157,32479,32804,33132
 };
-static int accel_6500_self_test(struct mpu_state_s *st, int32_t *bias_regular, int32_t *bias_st, int debug)
+static int accel_6500_self_test(struct mpu_state_s *st, const int32_t *bias_regular, const int32_t *bias_st, int debug)
 {
     int i, result = 0, otp_value_zero = 0;
     float accel_st_al_min, accel_st_al_max;
@@ -450,7 +450,7 @@ static int accel_6500_self_test(struct mpu_state_s *st, int32_t *bias_regular, i
     return result;
 }
 
-static int gyro_6500_self_test(struct mpu_state_s *st, int32_t *bias_regular, int32_t *bias_st, int debug)
+static int gyro_6500_self_test(struct mpu_state_s *st, const int32_t *bias_regular, const int32_t *bias_st, int debug)
 {
     int i, result = 0, otp_value_zero = 0;
     float gyro_st_al_max;
@@ -719,7 +719,7 @@ static int get_st_biases(struct mpu_state_s *st, int32_t *gyro, int32_t *accel, 
     return -1;
 }
 
-static int accel_self_test(struct mpu_state_s *st, int32_t *bias_regular, int32_t *bias_st, int debug)
+static int accel_self_test(struct mpu_state_s *st, const int32_t *bias_regular, const int32_t *bias_st, int debug)
 {
     if (st->mputype == MPU_TYPE_MPU6050)
         return accel_6050_self_test(st, bias_regular, bias_st, debug);
@@ -730,7 +730,7 @@ static int accel_self_test(struct mpu_state_s *st, int32_t *bias_regular, int32_
     return -1;
 }
 
-static int gyro_self_test(struct mpu_state_s *st, int32_t *bias_regular, int32_t *bias_st, int debug)
+static int gyro_self_test(struct mpu_state_s *st, const int32_t *bias_regular, const int32_t *bias_st, int debug)
 {
     if (st->mputype == MPU_TYPE_MPU6050)
         return gyro_6050_self_test(st, bias_regular, bias_st, debug);
