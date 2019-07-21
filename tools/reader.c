@@ -33,6 +33,8 @@ static double cal_mag_tr[3][3] = {
     {0, 1, 0},
     {0, 0, 1},
 };
+static double bias_accel[3] = {0,0,0};
+static double bias_gyro[3] = {0,0,0};
 
 static volatile bool keep_running = true;
 static struct crossi2c_bus i2cbus;
@@ -132,6 +134,47 @@ out_close:
     return ret;
 }
 
+static int load_bias_ag(const char *path) {
+    int ret = -1;
+    int fd;
+    ssize_t nbytes;
+    int32_t tmp_accel[3];
+    int32_t tmp_gyro[3];
+    size_t i;
+
+    fd = open(path, O_RDONLY, 0);
+    if (fd < 0) {
+        CROSSLOG_ERRNO("open");
+        return -1;
+    }
+
+    nbytes = read_all(fd, tmp_accel, sizeof(tmp_accel));
+    if (nbytes != sizeof(tmp_accel)) {
+        CROSSLOG_ERRNO("read_all");
+        goto out_close;
+    }
+
+    nbytes = read_all(fd, tmp_gyro, sizeof(tmp_gyro));
+    if (nbytes != sizeof(tmp_gyro)) {
+        CROSSLOG_ERRNO("read_all");
+        goto out_close;
+    }
+
+    for (i=0; i<3; i++) {
+        bias_accel[i] = ((double)tmp_accel[i]) / 65536.0f;
+        bias_gyro[i] = ((double)tmp_gyro[i]) / 65536.0f;
+    }
+
+    CROSSLOGI("bias_accel = [%f, %f, %f]", bias_accel[0], bias_accel[1], bias_accel[2]);
+    CROSSLOGI("bias_gyro = [%f, %f, %f]", bias_gyro[0], bias_gyro[1], bias_gyro[2]);
+
+    ret = 0;
+
+out_close:
+    close(fd);
+    return ret;
+}
+
 static void parse_args(int argc, char **argv) {
     int c;
 
@@ -141,6 +184,7 @@ static void parse_args(int argc, char **argv) {
             {"infmt",   required_argument, 0, 0 },
             {"outfmt",  required_argument, 0, 0 },
             {"cal_mag",  required_argument, 0, 0 },
+            {"bias_ag",  required_argument, 0, 0 },
             {0,         0,                 0, 0 }
         };
 
@@ -169,6 +213,12 @@ static void parse_args(int argc, char **argv) {
             else if (!strcmp(name, "cal_mag")) {
                 if (load_cal_mag(optarg)) {
                     fprintf(stderr, "can't load magnetometer calibration from %s\n", optarg);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if (!strcmp(name, "bias_ag")) {
+                if (load_bias_ag(optarg)) {
+                    fprintf(stderr, "can't load accel+gyro bias from %s\n", optarg);
                     exit(EXIT_FAILURE);
                 }
             }
@@ -477,14 +527,18 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
         return -1;
     }
 
-    // TODO: calibrate
     for (i = 0; i < 3; i++) {
         accelfp[i] = ((double)accel[i]) / ((double)accel_sens);
+
+        // calibrate
+        accelfp[i] += bias_accel[i];
     }
 
-    // TODO: calibrate
     for (i = 0; i < 3; i++) {
         gyrofp[i] = ((double)gyro[i]) / ((double)gyro_sens);
+
+        // calibrate
+        gyrofp[i] += bias_gyro[i];
     }
 
     for (i = 0; i < 3; i++) {
