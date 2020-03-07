@@ -65,3 +65,7 @@ add_subdirectory(lib/m24512)
 add_subdirectory(lib/bmp280)
 add_subdirectory(lib/eMPL)
 endif()
+
+install(TARGETS
+    usfs_reader
+)
