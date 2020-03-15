@@ -531,14 +531,14 @@ static int write_sentral_pt(struct bmp280_calib_param *calib_param, const uint8_
         accelfp[i] = ((double)accel[i]) / ((double)accel_sens);
 
         // calibrate
-        accelfp[i] += bias_accel[i];
+        accelfp[i] -= bias_accel[i];
     }
 
     for (i = 0; i < 3; i++) {
         gyrofp[i] = ((double)gyro[i]) / ((double)gyro_sens);
 
         // calibrate
-        gyrofp[i] += bias_gyro[i];
+        gyrofp[i] -= bias_gyro[i];
     }
 
     for (i = 0; i < 3; i++) {
