@@ -57,6 +57,10 @@ add_subdirectory(${COMPONENTS_DIR}/crosslog crosslog)
 add_subdirectory(${COMPONENTS_DIR}/crossi2c crossi2c)
 
 add_subdirectory(tools)
+
+install(TARGETS
+    usfs_reader
+)
 endif()
 
 if(NOT COMMAND idf_component_register)
@@ -65,7 +69,3 @@ add_subdirectory(lib/m24512)
 add_subdirectory(lib/bmp280)
 add_subdirectory(lib/eMPL)
 endif()
-
-install(TARGETS
-    usfs_reader
-)
